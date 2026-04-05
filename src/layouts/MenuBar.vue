@@ -24,7 +24,7 @@ defineProps<Props>();
 <style scoped>
 .menu-bar {
   height: 4%;
-  background-color: #2f9f27;
+  background-color: transparent;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;

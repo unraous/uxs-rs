@@ -33,8 +33,6 @@ const closeApp = async () => {
             <p>这里是超星控制面板，由Vue组件实现。</p>
           </div>
           <div class="chaoxing-webview">
-            <h1>超星网页视图(占位)</h1>
-            <p>这里是嵌入超星网页视图，由Tauri的WebView组件实现。</p>
           </div>
       </div>
     </div>
@@ -52,7 +50,8 @@ const closeApp = async () => {
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-  color: transparent;
+  background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
+  
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -64,10 +63,15 @@ const closeApp = async () => {
   display: flex;
   height: 100vh;
   width: 100vw;
+  background-image: url('@/assets/noise_texture.png');
+  mix-blend-mode: soft-light;
+  opacity: 0.25;
   flex-direction: column;
   transition: opacity 0.5s ease-out;
   position: relative;
 }
+
+
 
 .container.closing {
   animation: fadeOut 0.5s ease-out forwards;
@@ -94,14 +98,6 @@ const closeApp = async () => {
   mix-blend-mode: screen;  /* 可选：改变混合模式，adjust为 multiply/overlay/screen 等 */
 }
 
-.menu-bar {
-  height: 4%;
-  background-color: #9f9f27;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .main-layout {
   flex: 1;
   display: flex;
@@ -110,7 +106,7 @@ const closeApp = async () => {
 
 .left-panel {
   flex: 0 0 50%;
-  background-color: #273b9f;
+  background-color: transparent;
 }
 
 .right-panel {
@@ -118,14 +114,14 @@ const closeApp = async () => {
   display: flex;
   align-items: center;
   flex-direction: column;
-  background-color: #9f2727;
+  background-color: transparent;
 }
 
 .cx-control-panel {
   padding: 40px;
   width: 100%;
   height: 43.75%;
-  background-color: #d9d9d9;
+  background-color: transparent;
   display: flex;
   align-items: center;
   flex-direction: column;

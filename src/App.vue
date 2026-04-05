@@ -19,6 +19,7 @@ const closeApp = async () => {
 </script>
 
 <template>
+  <div class="mask"></div>
   <main class="container" :class="{ closing: isClosing }">
     <!-- Glitch 遮罩 - 覆盖整个视口（暂时停用） -->
     <div class="glitch-overlay"></div>
@@ -63,18 +64,21 @@ const closeApp = async () => {
   display: flex;
   height: 100vh;
   width: 100vw;
-  background-image: url('@/assets/noise_texture.png');
-  mix-blend-mode: soft-light;
-  opacity: 0.25;
   flex-direction: column;
-  transition: opacity 0.5s ease-out;
   position: relative;
 }
 
-
-
-.container.closing {
-  animation: fadeOut 0.5s ease-out forwards;
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-image: url('@/assets/noise_texture.png');
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 @keyframes fadeOut {

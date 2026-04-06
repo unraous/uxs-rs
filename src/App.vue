@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import MenuBar from './layouts/MenuBar.vue';
+import MenuBar from '@/layouts/MenuBar.vue';
+import ConfigPanel from '@/layouts/ConfigPanel.vue';
 
 </script>
 
@@ -12,15 +13,12 @@ import MenuBar from './layouts/MenuBar.vue';
       <div class="left-panel">
       </div>
       <div class="right-panel">
-          <div class="cx-control-panel">
-            <h1>超星控制面板(占位)</h1>
-            <p>这里是超星控制面板，由Vue组件实现。</p>
-          </div>
-          <div class="chaoxing-webview">
-          </div>
-          <div class="version-info">
-            <p>by unraous v2.0.0</p>
-          </div>
+        <ConfigPanel/>
+        <div class="chaoxing-webview">
+        </div>
+        <div class="version-info">
+          <p>by unraous v2.0.0</p>
+        </div>
       </div>
     </div>
   </main>
@@ -38,6 +36,7 @@ import MenuBar from './layouts/MenuBar.vue';
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
+  color: #0d58a4;
   background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
   
   font-synthesis: none;
@@ -71,6 +70,7 @@ import MenuBar from './layouts/MenuBar.vue';
   display: flex;
   flex-direction: row;
 }
+
 .left-panel {
   flex: 0 0 50%;
   background-color: transparent;
@@ -84,22 +84,12 @@ import MenuBar from './layouts/MenuBar.vue';
   background-color: transparent;
 }
 
-.cx-control-panel {
-  padding: 40px;
-  width: 100%;
-  height: 43.75%;
-  background-color: transparent;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-
 .chaoxing-webview {
   padding: 20px;
   width: 96%;
   height: 50%;
   background-color: #F6F8FA;
-  outline: 5px solid #0d58a4;
+  outline: 6px solid #0d58a4;
 }
 
 .version-info {

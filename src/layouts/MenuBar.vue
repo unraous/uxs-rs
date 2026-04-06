@@ -1,21 +1,28 @@
 <script setup lang="ts">
 import xIconRaw from '@/assets/x.svg?raw';
 import mIconRaw from '@/assets/-.svg?raw';
+import { invoke } from '@tauri-apps/api/core';
 
-interface Props {
-    onMinimize: () => void;
-    onClose: () => Promise<void>;
-}
+const minimizeApp = () => {
+    invoke('minimize_app').catch(e => {
+        console.error('最小化失败:', e);
+    });
+};
 
-defineProps<Props>();
+const closeApp = async () => {
+    invoke('close_app').catch(e => {
+        console.error('关闭应用失败:', e);
+    });
+};
+
 </script>
 
 <template>
   <div class="menu-bar">
-    <button @click="onMinimize">
+    <button @click="minimizeApp">
         <span v-html="mIconRaw" class="icon"></span>
     </button>
-    <button @click="onClose">
+    <button @click="closeApp">
         <span v-html="xIconRaw" class="icon"></span>
     </button>
   </div>

@@ -36,8 +36,8 @@ pub fn classify_url(url: &tauri::Url) -> UrlType {
         return UrlType::Other;
     }
 
-    let subdomain = host.split('.').next().unwrap_or_default();
-    let result = match subdomain {
+    let sub = host.split('.').next().unwrap_or_default();
+    let result = match sub {
         "i" => UrlType::MainSpace,
         "mooc1" if url.path().starts_with("/mycourse/") => UrlType::Course,
         "passport2" if url.path().starts_with("/login") => UrlType::Login,

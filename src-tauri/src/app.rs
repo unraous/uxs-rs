@@ -36,7 +36,7 @@ pub fn init_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::er
     let monitors = app.available_monitors()?;
 
     let target_monitor = if monitors.len() > 1 {
-        &monitors[0]
+        &monitors[1]
     } else {
         &monitors[0]
     };

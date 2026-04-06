@@ -1,30 +1,14 @@
 <script setup lang="ts">
 import MenuBar from './layouts/MenuBar.vue';
-import { invoke } from '@tauri-apps/api/core';
-import { ref } from 'vue';
 
-const isClosing = ref(false);
-
-const minimizeApp = () => {
-    invoke('minimize_app').catch(e => {
-        console.error('最小化失败:', e);
-    });
-};
-
-const closeApp = async () => {
-    invoke('close_app').catch(e => {
-        console.error('关闭应用失败:', e);
-    });
-};
 </script>
 
 <template>
   <div class="mask"></div>
-  <main class="container" :class="{ closing: isClosing }">
+  <main class="container">
     <!-- Glitch 遮罩 - 覆盖整个视口（暂时停用） -->
     <div class="glitch-overlay"></div>
-
-    <MenuBar :on-close="closeApp" :on-minimize="minimizeApp" />
+    <MenuBar/>
     <div class="main-layout">
       <div class="left-panel">
       </div>

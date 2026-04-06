@@ -1,6 +1,6 @@
 /// This module defines the main application logic for the Tauri application, including window creation and webview management.
 use log::{debug, info, error};
-use tauri::{LogicalPosition, LogicalSize, WebviewBuilder, WebviewUrl, WindowBuilder};
+use tauri::{LogicalPosition, LogicalSize, WebviewBuilder, WebviewUrl, WindowBuilder, image::Image};
 use crate::url::{classify_url, get_modification_script};
 
 /// Handles the page load event for the webview. If the page load is finished, 
@@ -44,10 +44,11 @@ pub fn init_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::er
     let monitor_pos = target_monitor.position();
 
     let window = WindowBuilder::new(app, "app")
-        .fullscreen(true)
-        .position(monitor_pos.x as f64, monitor_pos.y as f64)
-        .background_color((0, 0, 0).into())
-        .build()?; 
+    .fullscreen(true)
+    .position(monitor_pos.x as f64, monitor_pos.y as f64)
+    .background_color((0, 0, 0).into())
+    .icon(Image::from_path("icons/icon.ico")?)?
+    .build()?; 
     
     let logical_size: LogicalSize<f64> = tauri::LogicalSize::from_physical(
         window.inner_size()?, window.scale_factor()?

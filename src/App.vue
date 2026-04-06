@@ -4,10 +4,9 @@ import MenuBar from './layouts/MenuBar.vue';
 </script>
 
 <template>
-  <div class="mask"></div>
   <main class="container">
     <!-- Glitch 遮罩 - 覆盖整个视口（暂时停用） -->
-    <div class="glitch-overlay"></div>
+    <div class="glitch-mask"></div>
     <MenuBar/>
     <div class="main-layout">
       <div class="left-panel">
@@ -30,13 +29,13 @@ import MenuBar from './layouts/MenuBar.vue';
   padding: 0;
   box-sizing: border-box;
 }
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
   background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
-  
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -52,38 +51,15 @@ import MenuBar from './layouts/MenuBar.vue';
   position: relative;
 }
 
-.mask {
+.glitch-mask {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
   z-index: 9999;
-  background-image: url('@/assets/noise_texture.png');
-  mix-blend-mode: soft-light;
   pointer-events: none;
-  opacity: 0.5;
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* Glitch 遮罩 */
-.glitch-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  pointer-events: none;  /* 不阻止下方元素交互 */
-  mix-blend-mode: screen;  /* 可选：改变混合模式，adjust为 multiply/overlay/screen 等 */
+  mix-blend-mode: screen;
 }
 
 .main-layout {
@@ -108,7 +84,7 @@ import MenuBar from './layouts/MenuBar.vue';
 .cx-control-panel {
   padding: 40px;
   width: 100%;
-  height: 43.75%;
+  height: 42.71%;
   background-color: transparent;
   display: flex;
   align-items: center;
@@ -117,8 +93,8 @@ import MenuBar from './layouts/MenuBar.vue';
 
 .chaoxing-webview {
   padding: 20px;
-  width: 96%;
-  height: 50%;
-  background-color: #F6F8FA;
+  width: 100%;
+  height: 52.08%;
+  background-color: #165ea7;
 }
 </style>

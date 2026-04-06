@@ -2,6 +2,17 @@
     const OBSERVER_CONFIG = { childList: true, subtree: true, attributes: true };
     console.info('开始注入链接处理脚本...');
 
+    const injectCss = () => {
+        const style = document.createElement('style');
+        style.textContent = `
+            :root {
+                background-color: #F6F8FA;
+            }
+        `;
+        document.head.appendChild(style);
+        console.info('默认背景 已修改');
+    };
+
     const getIframeDoc = (iframe) => {
         try {
             const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -72,6 +83,7 @@
     };
 
     try {
+        injectCss();
         handleLinks();
         const linkObserver = new MutationObserver((mutations) => {
             if (mutations.some(m => m.addedNodes.length > 0)) {

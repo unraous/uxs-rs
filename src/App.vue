@@ -18,6 +18,9 @@ import MenuBar from './layouts/MenuBar.vue';
           </div>
           <div class="chaoxing-webview">
           </div>
+          <div class="version-info">
+            <p>by unraous v2.0.0</p>
+          </div>
       </div>
     </div>
   </main>
@@ -36,6 +39,7 @@ import MenuBar from './layouts/MenuBar.vue';
   line-height: 24px;
   font-weight: 400;
   background: linear-gradient(135deg, #e8dcc4 0%, #f0ebe0 100%);
+  
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -67,7 +71,6 @@ import MenuBar from './layouts/MenuBar.vue';
   display: flex;
   flex-direction: row;
 }
-
 .left-panel {
   flex: 0 0 50%;
   background-color: transparent;
@@ -84,7 +87,7 @@ import MenuBar from './layouts/MenuBar.vue';
 .cx-control-panel {
   padding: 40px;
   width: 100%;
-  height: 42.71%;
+  height: 43.75%;
   background-color: transparent;
   display: flex;
   align-items: center;
@@ -93,9 +96,19 @@ import MenuBar from './layouts/MenuBar.vue';
 
 .chaoxing-webview {
   padding: 20px;
+  width: 96%;
+  height: 50%;
+  background-color: #F6F8FA;
+  outline: 5px solid #0d58a4;
+}
+
+.version-info {
+  padding-right: 40px;
+  height: 6.25%;
   width: 100%;
-  height: 52.08%;
-  background-color: #165ea7;
-  border: #16a742 1px solid;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 </style>

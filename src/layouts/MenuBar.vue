@@ -41,32 +41,19 @@ button {
   aspect-ratio: 1;
   border: none;
   border-radius: 0%;
-  color: #5c3014;
+  background-color: transparent;
+  color: #0d58a4;
   height: 100%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* 平常状态 */
-.icon {
-  display: inline-flex;
-  transition: filter 0.3s ease;
-}
-
-.icon svg {
-  width: 100%;
-  height: 100%;
-  fill: #5c3014;
-}
-
-button:hover {
-  background-color: #000000;
+  transition: all 0.25s ease-out;
 }
 
 /* 悬停状态 */
-button:hover .icon svg {
-  fill: #8b4513;
+button:hover {
+  background-color: #0d58a4;
+  color: #ede5d5;
 }
 </style>

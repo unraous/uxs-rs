@@ -3,6 +3,8 @@ import xIconRaw from '@/assets/x.svg?raw';
 import mIconRaw from '@/assets/-.svg?raw';
 import { invoke } from '@tauri-apps/api/core';
 
+const appTitle = 'uxuescript'; 
+
 const minimizeApp = () => {
     invoke('minimize_app').catch(e => {
         console.error('最小化失败:', e);
@@ -19,6 +21,9 @@ const closeApp = async () => {
 
 <template>
   <div class="menu-bar">
+    <div class="title">
+      {{ appTitle }}
+    </div>
     <button @click="minimizeApp">
         <span v-html="mIconRaw" class="icon"></span>
     </button>
@@ -35,6 +40,16 @@ const closeApp = async () => {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
+  position: relative;
+}
+
+.title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #0d58a4;
+  font-size: 30px;
 }
 
 button {

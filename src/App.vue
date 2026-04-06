@@ -6,8 +6,6 @@ import ConfigPanel from '@/layouts/ConfigPanel.vue';
 
 <template>
   <main class="container">
-    <!-- Glitch 遮罩 - 覆盖整个视口（暂时停用） -->
-    <div class="glitch-mask"></div>
     <MenuBar/>
     <div class="main-layout">
       <div class="left-panel">

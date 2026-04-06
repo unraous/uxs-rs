@@ -96,5 +96,6 @@ import MenuBar from './layouts/MenuBar.vue';
   width: 100%;
   height: 52.08%;
   background-color: #165ea7;
+  border: #16a742 1px solid;
 }
 </style>

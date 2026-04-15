@@ -4605,6 +4605,7 @@ name = "uxuescript"
 version = "0.1.0"
 dependencies = [
  "env_logger",
+ "futures-util",
  "log",
  "serde",
  "serde_json",

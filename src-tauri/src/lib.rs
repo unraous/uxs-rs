@@ -2,6 +2,7 @@
 pub mod app;
 pub mod commands;
 pub mod url;
+pub mod ws;
 
 pub use app::init_app;
 pub use commands::{close_app, minimize_app};

@@ -1,7 +1,10 @@
 [package]
 name = "uxuescript"
 version = "0.1.0"
-description = "A xuexitong course-dealing application written in Tauri,Old vision is written in Pyside6, but now I rewrite it in Rust to make it more efficient and cross-platform."
+description = """
+    A xuexitong course-dealing application written in Tauri, Old vision is written in Pyside6, 
+    but now I rewrite it in Rust to make it more efficient and cross-platform.
+"""
 authors = ["unraous"]
 edition = "2021"
 
@@ -26,4 +29,5 @@ log = "0.4.29"
 env_logger = "0.11.10"
 tokio = "1.50.0"
 tokio-tungstenite = "0.29.0"
+futures-util = "0.3.32"
 

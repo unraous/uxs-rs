@@ -2,6 +2,7 @@
 use log::{debug, info, error};
 use tauri::{LogicalPosition, LogicalSize, WebviewBuilder, WebviewUrl, WindowBuilder, image::Image};
 use crate::url::{classify_url, get_modification_script};
+use std::thread;
 
 /// Handles the page load event for the webview. If the page load is finished, 
 /// it checks the URL and injects the appropriate modification script if needed.
@@ -28,6 +29,16 @@ fn page_load_manager(
 
 fn window_events_manager(event: &tauri::WindowEvent) {
     debug!("窗口事件: {:?}", event);
+}
+
+fn start_ws_server() {
+    thread::spawn(|| {
+        info!("启动WebSocket服务器...");
+        loop {
+            std::thread::sleep(std::time::Duration::from_secs(1));
+            debug!("WebSocket服务器正在运行...");
+        }
+    });
 }
 
 /// Initializes the application by creating the main window and adding two webviews:
@@ -81,6 +92,8 @@ pub fn init_app(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::er
 
     window.on_window_event(window_events_manager);
 
-    info!("应用窗口初始化成功") ;
+    info!("应用窗口初始化成功");
+    start_ws_server();
+
     Ok(())
 }

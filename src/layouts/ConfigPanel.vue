@@ -5,8 +5,8 @@
 <template>
   <div class="body">
     <div class="config">
-      <h2>配置面板（占位）</h2>
-      <p>这里是配置面板，由Vue组件实现。</p>
+      <h2>信息面板（占位）</h2>
+      <p>这里是信息面板，由Vue组件实现。</p>
     </div>
     <div class="tips">
       <h2>功能设置（占位）</h2>

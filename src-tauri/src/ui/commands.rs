@@ -6,7 +6,7 @@ pub fn close_app(window: window::Window) {
     let webviews = window.webviews();
     for webview in webviews {
         debug!("webview {} 执行渐变透明动画...", webview.label());
-        if let Err(e) = webview.eval(include_str!("./scripts/fade-out.js")) {
+        if let Err(e) = webview.eval(include_str!("../scripts/fade-out.js")) {
             error!("注入渐变动画脚本失败: {}", e);
         }
     }

@@ -1,12 +1,11 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-pub mod app;
-pub mod commands;
-pub mod url;
-pub mod ws;
+pub mod core;
+pub mod ui;
+pub mod network;
 
-pub use app::init_app;
-pub use commands::{close_app, minimize_app};
-pub use url::{UrlType, classify_url, get_modification_script};
+pub use ui::init_app;
+pub use ui::{close_app, minimize_app};
+pub use core::{UrlType, classify_url};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

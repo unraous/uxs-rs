@@ -21,13 +21,12 @@
                 console.info('成功访问 iframe:', iframe);
                 return iframeDoc;
             }
-            
+
             console.warn('iframe 尚未加载完成，跳过:', iframe);
-            return null;
         } catch (e) {
             console.error('访问 iframe 失败:', e);
-            return null;
         }
+        return null;
     };
 
     const getAllValidIframes = async (retryCount = 0, maxRetries = 4) => {

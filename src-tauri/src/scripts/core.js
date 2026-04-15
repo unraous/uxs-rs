@@ -26,13 +26,13 @@
  */
 
 
-const DEFAULT_TEST_OPTION = globalThis.LAUNCH_OPTION ?? 0;
+const DEFAULT_TEST_OPTION = globalThis.LAUNCH_OPTION ?? 1;
 const DEFAULT_SPEED_OPTION = globalThis.FORCE_SPEED ?? false;
 const DEFAULT_SPEED = globalThis.SPEED ?? 2;
 
-console.log('测试选项:', DEFAULT_TEST_OPTION);
-console.log('强制倍速选项:', DEFAULT_SPEED_OPTION);
-console.log('默认倍速:', DEFAULT_SPEED);
+console.info('测试选项:', DEFAULT_TEST_OPTION);
+console.info('强制倍速选项:', DEFAULT_SPEED_OPTION);
+console.info('默认倍速:', DEFAULT_SPEED);
 
 const DEFAULT_SLEEP_TIME = 400 + Math.floor(Math.random() * 200); // 默认延迟400-600ms
 const DEFAULT_INTERVAL_TIME = 85 + Math.floor(Math.random() * 30); // 默认轮询间隔85-115ms
@@ -88,15 +88,15 @@ let videoLock = false; // 视频锁，防止多次点击播放按钮
 let hasEnterdct2 = false; // 临时补丁，防止多次进入测验题目处理流程
 
 if (DEFAULT_TEST_OPTION === 1) {
-    console.log('已开启课后答题功能,正在创建端口连接...');
-    window._ws = new WebSocket("ws://localhost:8765");
-    window._ws.onopen = function() {
-        console.log("WebSocket已连接Python端口");
+    console.info('已开启课后答题功能,正在创建端口连接...');
+    globalThis._ws = new WebSocket("ws://localhost:9817");
+    globalThis._ws.onopen = function() {
+        console.info("WebSocket连接已建立");
     };
-    window._ws.onerror = function(e) {
+    globalThis._ws.onerror = function(e) {
         console.warn("WebSocket连接失败", e);
     };
-    window._ws.onclose = function() {
+    globalThis._ws.onclose = function() {
         console.warn("WebSocket已关闭");
     };
 }
@@ -131,7 +131,7 @@ function nodeType(node) {
         console.warn('未找到span.posCatalog_name');
         const titleSpan = node.querySelector(COURSE_TREE_NODE_TITLE_FEATURE_CLASS);
         if (titleSpan) {
-            console.log('使用span.posCatalog_title作为标题');
+            console.info('使用span.posCatalog_title作为标题');
             return 'Title';
         }
         return 'Unknown';
@@ -163,7 +163,7 @@ function initializeTreeIndex() {
     courseTreeIndex = 0;
     while(node = nextCourse()) {
         if(node.classList.contains(COURSE_TREE_NODE_CURRENT_FEATURE_CLASS)) {
-            console.log('已找到当前激活的课程节点:', node.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS).title);
+            console.info('已找到当前激活的课程节点:', node.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS).title);
             courseTreeIndex--;
             return node.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS).title;
         } 
@@ -207,7 +207,7 @@ function waitForElement(getter, callback, interval = DEFAULT_INTERVAL_TIME, maxT
 
 function continueToNextChapter() {
     if (nextLock || nextCooldown) {
-        console.log('[锁] 跳转冷却中，跳过本次 continueToNextChapter');
+        console.info('[锁] 跳转冷却中，跳过本次 continueToNextChapter');
         return;
     }
     nextLock = true;
@@ -218,7 +218,7 @@ function continueToNextChapter() {
     // 跳转后冷却，比如5秒
     setTimeout(() => {
         nextCooldown = false;
-        console.log('章节跳转冷却结束');
+        console.info('章节跳转冷却结束');
     }, 10 * DEFAULT_SLEEP_TIME); 
 
     const nextBtn = document.getElementById(NEXTBTN_ID);
@@ -243,7 +243,7 @@ function continueToNextChapter() {
         const nameSpan = nextCourseNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
         const titleSpan = nextCourseNode.querySelector(COURSE_TREE_NODE_TITLE_FEATURE_CLASS);
         const title = nameSpan?.title ?? titleSpan?.title ?? '未知标题';
-        console.log('跳过已完成和锁定课程/目录:', title);
+        console.info('跳过已完成和锁定课程/目录:', title);
         nextCourseNode = nextCourse();
         if(!nextCourseNode) {
             break;
@@ -252,13 +252,13 @@ function continueToNextChapter() {
     }
     if (nextCourseNode) {
         let nextChapter = nextCourseNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS);
-        console.log('正在跳转到下一课程:', nextChapter.title);
+        console.info('正在跳转到下一课程:', nextChapter.title);
         if (nextChapter) {
             if (currentTitle === nextChapter.title) {
                 let aimNode = nextCourse();
-                console.log('当前章节已激活，跳过');
+                console.info('当前章节已激活，跳过');
                 while(nodeType(aimNode) !== 'Unknown' && nodeType(aimNode) !== 'Pending') {
-                    console.log('执行章节跳转循环中...')
+                    console.info('执行章节跳转循环中...')
                     aimNode = nextCourse();
                     if(!aimNode) {
                         confirm('未找到下一个课程节点, 可能是课程已全部完成或结构异常,脚本已退出');
@@ -269,13 +269,13 @@ function continueToNextChapter() {
                     skippedCount++; 
                 }
                 nextChapter = aimNode.querySelector(COURSE_TREE_NODE_INTERACT_FEATURE_CLASS); 
-                console.log('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
+                console.info('循环执行完毕，正在跳转到下一课程:', nextChapter.title);           
             }  
             if (nextChapter) {
                 timeSleep(DEFAULT_SLEEP_TIME).then(() => { 
-                    console.log('即将跳转到下一章节');
+                    console.info('即将跳转到下一章节');
                     nextChapter.click();
-                    console.log('已点击章节:', nextChapter.title);
+                    console.info('已点击章节:', nextChapter.title);
                     nextLock = false; 
                 });
             } else {
@@ -300,20 +300,20 @@ function findOuterDoc() {
         if (!outerIframe) return null;
         let outerDoc;
         try {
-            outerDoc = outerIframe.contentDocument || outerIframe.contentWindow.document;
+            outerDoc = outerIframe.contentDocument || outerIframe.contentglobalThis.document;
         } catch (e) {
             console.warn('跨域, 无法访问iframe内容');
             return null;
         }
         if (!outerDoc) {
-            console.log('[调试] 未找到 outerDoc');
+            console.info('[调试] 未找到 outerDoc');
             return null;
         }
         if (outerDoc.location.href === IFRAME_LOADING_URL) {
-            console.log('[调试] outerDoc 仍为 about:blank,等待加载');
+            console.info('[调试] outerDoc 仍为 about:blank,等待加载');
             return null;
         }
-        console.log('已找到 outerDoc:', outerDoc);
+        console.info('已找到 outerDoc:', outerDoc);
         return outerDoc;
 }
 
@@ -324,7 +324,7 @@ function findInnerDocs(outerDoc) {
             iframe.src?.includes('ananas/modules/work')       // 满足 src 包含特定路径
     );
     const result = [];
-    console.log('开始核对');
+    console.info('开始核对');
     const needSkip = outerDoc.querySelectorAll('.ans-job-icon');
     if (needSkip?.length > 1 && innerIframes.length < needSkip.length) {
         console.warn('检测到测验题目数量小于课程内实际测验题目数量不符，将重新回调', needSkip.length, innerIframes.length);
@@ -347,14 +347,14 @@ function findInnerDocs(outerDoc) {
 
         // 获取 innerDoc
         try {
-            innerDoc = innerIframe.contentDocument || innerIframe.contentWindow.document;
+            innerDoc = innerIframe.contentDocument || innerIframe.contentglobalThis.document;
             if (!innerDoc) {
-                console.log('[调试] 未找到 innerDoc');
+                console.info('[调试] 未找到 innerDoc');
                 throw new Error('innerDoc 未找到'); // 抛出异常，跳转到 catch
             }
 
             if (innerDoc.location.href === IFRAME_LOADING_URL) {
-                console.log('[调试] innerDoc 仍为 about:blank, 等待加载');
+                console.info('[调试] innerDoc 仍为 about:blank, 等待加载');
                 throw new Error('innerDoc 加载中'); 
             }
         } catch (e) {
@@ -364,7 +364,7 @@ function findInnerDocs(outerDoc) {
         result.push({ innerDoc, Type });
     });
     if (result.length === 0) {
-        console.log('[调试] 尝试检测测验题目');
+        console.info('[调试] 尝试检测测验题目');
         // 备用手段：尝试查找 src 包含 /ananas/modules/work/ 的 iframe
         const workIframe = Array.from(outerDoc.querySelectorAll('iframe')).find(
             iframe => iframe.src?.includes('/ananas/modules/work/')
@@ -373,12 +373,12 @@ function findInnerDocs(outerDoc) {
             try {
                 let workDoc;
                 try {
-                    workDoc = workIframe.contentDocument || workIframe.contentWindow.document;
+                    workDoc = workIframe.contentDocument || workIframe.contentglobalThis.document;
                 } catch (e) {
                     console.warn('[备用] 获取 workDoc 失败', e);
                     return null;
                 }
-                console.log('[备用] workDoc:', workDoc);
+                console.info('[备用] workDoc:', workDoc);
                 if (!workDoc) {
                     console.warn('[备用] workDoc 为 null');
                     return null;
@@ -386,7 +386,7 @@ function findInnerDocs(outerDoc) {
                     console.warn('[备用] workDoc 仍为 about:blank');
                     return null;
                 } else {
-                    console.log('[备用] 通过 src 查找到了 work iframe innerDoc');
+                    console.info('[备用] 通过 src 查找到了 work iframe innerDoc');
                     result.push({ innerDoc: workDoc, Type: 'Work' });
                 }
             } catch (e) {
@@ -394,12 +394,12 @@ function findInnerDocs(outerDoc) {
                 return null;
             }
         } else {
-            console.log('[备用] 未找到 work iframe');
+            console.info('[备用] 未找到 work iframe');
             return null;
         }
         
     }
-    console.log('再次核对');
+    console.info('再次核对');
     if (needSkip?.length > 1 && result.length < needSkip.length) {
         console.warn('检测到测验题目数量小于课程内实际测验题目数量不符，将重新回调');
         return null;
@@ -411,10 +411,10 @@ function findInnerDocs(outerDoc) {
 function muteVideo (muteBtn) {
     if (muteBtn) {
     if (muteBtn.title === '取消静音') {
-        console.log('已是静音状态，跳过');
+        console.info('已是静音状态，跳过');
     } else if (muteBtn.title === '静音') {
         muteBtn.click();
-        console.log('已自动点击静音按钮');
+        console.info('已自动点击静音按钮');
     } else {
         console.warn('静音按钮的title未知:', muteBtn.title);
     }
@@ -435,7 +435,7 @@ function selectMenuItem(paceList) {
         found.click();
         timeSleep(DEFAULT_SLEEP_TIME).then(() => {
             if (found.classList.contains(VIDEO_PACE_SELECTED_FEATURE_CLASS)) {
-                console.log('已自动选择菜单项:', found);
+                console.info('已自动选择菜单项:', found);
             } else {
                 console.warn('点击后未能成功选择菜单项:', found);
             }
@@ -453,11 +453,11 @@ function forcePlaybackRate(videoDiv, targetRate = 2.0) {
     }
     const video = videoDiv.querySelector('video'); // 获取容器内的视频元素
 
-    console.log('当前视频为：', video);
-    console.log('正在强制设置视频倍速:', video.playbackRate, '->', targetRate);
+    console.info('当前视频为：', video);
+    console.info('正在强制设置视频倍速:', video.playbackRate, '->', targetRate);
     // 1. 强制设置倍速
     video.playbackRate = targetRate;
-    console.log('已强制设置视频倍速:', video.playbackRate);
+    console.info('已强制设置视频倍速:', video.playbackRate);
     // 2. 防止被检测：重写 playbackRate 属性
     Object.defineProperty(video, 'playbackRate', {
         get: function() { return targetRate; },
@@ -519,7 +519,7 @@ function waitForSubmitAndContinue(innerDoc) {
 }
 
 function autoQuestionDeal(target, innerDoc) {
-    console.log('开始处理互动题目:', target);
+    console.info('开始处理互动题目:', target);
     videoLock = true; // 锁定视频处理，防止多次点击
     try {
         if (target) {
@@ -527,7 +527,7 @@ function autoQuestionDeal(target, innerDoc) {
             const maxPoll = DEFAULT_TRY_COUNT; 
             const poll = async () => {
                 if (target.style.visibility === '') {
-                    console.log('visi has been changed:', target.style.visibility);
+                    console.info('visi has been changed:', target.style.visibility);
                     const radios = innerDoc.querySelectorAll(VIDEO_QUESTION_RADIOS_FEATURE_CLASSES);
                     const checkboxes = innerDoc.querySelectorAll(VIDEO_QUESTION_CHECKBOXES_FEATURE_CLASSES);
 
@@ -541,7 +541,7 @@ function autoQuestionDeal(target, innerDoc) {
                                     checkboxes[j].click();
                                 }
                             }
-                            console.log('正在提交多选题目');
+                            console.info('正在提交多选题目');
                             innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                             const over = await waitForSubmitAndContinue(innerDoc);
                             if (over) return;
@@ -550,7 +550,7 @@ function autoQuestionDeal(target, innerDoc) {
                         // 单选
                         for (const radio of radios) {
                             radio.click();
-                            console.log('正在提交单选题目');
+                            console.info('正在提交单选题目');
                             innerDoc.querySelector(VIDEO_QUESTION_SUBMIT_FEATURE_CLASS).click();
                             const over = await waitForSubmitAndContinue(innerDoc);
                             if (over) return;
@@ -581,15 +581,15 @@ function findVideoElement(innerDoc) {
     const muteBtn = innerDoc.querySelector(VIDEO_MUTEBTN_FEATURE_CLASS); // 静音按钮
 
     if (!videoDiv) {
-        console.log('[调试] 未找到 video 元素');
+        console.info('[调试] 未找到 video 元素');
     } else {
-        console.log('该章节为video,进行参数捕获', videoDiv);
+        console.info('该章节为video,进行参数捕获', videoDiv);
         // 优化调试输出部分
-        console.log('该章节为video,进行参数捕获', videoDiv);
+        console.info('该章节为video,进行参数捕获', videoDiv);
 
         // 使用一个通用函数处理元素检测日志
         function logElementStatus(element, name, found = true) {
-            console.log(`[调试] ${found ? '找到' : '未找到'}${name}:`, element || '');
+            console.info(`[调试] ${found ? '找到' : '未找到'}${name}:`, element || '');
         }
 
         const elementsToLog = [
@@ -605,7 +605,7 @@ function findVideoElement(innerDoc) {
         }
 
         if (paceList.length > 0) {
-            console.log('[调试] 菜单项:', paceList);
+            console.info('[调试] 菜单项:', paceList);
         }
 
         if (videoDiv) {
@@ -645,17 +645,17 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
             return;
         }
         let pauseFreeze = false;
-        console.log('debug successfully');
+        console.info('debug successfully');
         let observer = null;
         const checkClass = () => {
             if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) {
-                console.log('class 已包含 vjs-ended');
+                console.info('class 已包含 vjs-ended');
                 observer?.disconnect();
                 resolve(true);
             } else if (!videoDiv.classList.contains(VIDEO_HAS_LAUNCHED_FEATURE_CLASS)) {       
                 tryStartVideo(videoDiv, launchBtn, paceList, muteBtn);
                 if (target && target.style.visibility !== 'hidden') {
-                            console.log('检测为互动题目,正在处理');
+                            console.info('检测为互动题目,正在处理');
                             autoQuestionDeal(target, innerDoc);
                             pauseFreeze = true;
                             setTimeout(() => {
@@ -663,14 +663,14 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                             }, 10 * DEFAULT_SLEEP_TIME);
                 }
             } else if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
-                console.log('课程被暂停,正在检测原因');
+                console.info('课程被暂停,正在检测原因');
                 timeSleep(DEFAULT_SLEEP_TIME).then(() => {
                     if (videoDiv.classList.contains(VIDEO_PAUSED_FEATURE_CLASS)) {
                         if (videoDiv.classList.contains(VIDEO_ENDED_FEATURE_CLASS)) { //由于视频结束时有暂停属性，由于延迟会产生分支跳跃到此处的情况，此步为防止一个视频循环播放
                             return;
                         }
                         if (target && target.style.visibility !== 'hidden') {
-                            console.log('检测为互动题目,正在处理');
+                            console.info('检测为互动题目,正在处理');
                             autoQuestionDeal(target, innerDoc);
                             pauseFreeze = true;
                             setTimeout(() => {
@@ -678,7 +678,7 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                             }, 10 * DEFAULT_SLEEP_TIME);
                         } else if (playControlBtn) {
                             if (!pauseFreeze) {
-                                console.log('未检测到互动题目,已自动点击播放按钮');
+                                console.info('未检测到互动题目,已自动点击播放按钮');
                                 let tryCount = 0;
                                 const maxTry = DEFAULT_TRY_COUNT - 10;
                                 const tryPlay = () => {
@@ -703,18 +703,18 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
                             console.warn('未找到播放控制按钮,请用户手动点击播放');
                         }
                     } else {
-                        console.log('暂停状态已自动恢复,无需处理');
+                        console.info('暂停状态已自动恢复,无需处理');
                     }
                 }); 
             } else if (target && target.style.visibility !== 'hidden') {
-                console.log('检测为互动题目,正在处理');
+                console.info('检测为互动题目,正在处理');
                 autoQuestionDeal(target, innerDoc);
                 pauseFreeze = true;
                 setTimeout(() => {
                     pauseFreeze = false; // 5秒后解除暂停冻结
                 }, 10 * DEFAULT_SLEEP_TIME);
             } else {
-                console.log('视频正在播放中，继续检测');
+                console.info('视频正在播放中，继续检测');
             } 
         };
         observer = new MutationObserver(checkClass);
@@ -726,29 +726,29 @@ function autoPlayVideo(innerDoc, videoDiv, launchBtn, target, playControlBtn, pa
 function findPdfElement(innerDoc) {
     const finalIframe = innerDoc.getElementById(PDF_IFRAME_ID);
     if (!finalIframe) {
-        console.log('[调试] 未找到 panView 元素');
+        console.info('[调试] 未找到 panView 元素');
         return null;
     }
     let finalDoc;
     try {
-        finalDoc = finalIframe.contentDocument || finalIframe.contentWindow.document;
+        finalDoc = finalIframe.contentDocument || finalIframe.contentglobalThis.document;
     } catch (e) {
-        console.log('[调试] 获取 panView 的 document 失败', e);
+        console.info('[调试] 获取 panView 的 document 失败', e);
         return null;
     }
     
     const pdfHtml = finalDoc.documentElement;
     if (!pdfHtml) {
-        console.log('[调试] 未找到 pdf 元素');
+        console.info('[调试] 未找到 pdf 元素');
         return null;
     }
 
     const pdfBody = finalDoc.body;
     if (!pdfBody || !pdfBody.childNodes || pdfBody.childNodes.length === 0) {
-        console.log('[调试] PDF 文档 body 为空或不存在');
+        console.info('[调试] PDF 文档 body 为空或不存在');
         return null;
     }
-    console.log('已找到 pdf 元素:', pdfHtml);
+    console.info('已找到 pdf 元素:', pdfHtml);
     return { pdfHtml };
 }
 
@@ -777,27 +777,27 @@ function scrollPdfToBottom(pdfHtml, maxTries = Math.floor(DEFAULT_TRY_COUNT / 10
 function findWorkElement(innerDoc) {
     const testIframe = innerDoc.getElementById('frame_content');
     if (!testIframe) {
-        console.log('[调试] 未找到 frame_content 元素');
+        console.info('[调试] 未找到 frame_content 元素');
         return null;
     }
     let testDoc;
     try {
-        testDoc = testIframe.contentDocument || testIframe.contentWindow.document;
+        testDoc = testIframe.contentDocument || testIframe.contentglobalThis.document;
     } catch (e) {
-        console.log('[调试] 获取 frame_content 的 document 失败', e);
+        console.info('[调试] 获取 frame_content 的 document 失败', e);
         return null;
     }
     
     const testList = testDoc.querySelectorAll('.singleQuesId');
     if (testList.length === 0) {
-        console.log('[调试] 未找到任何测试题目');
+        console.info('[调试] 未找到任何测试题目');
         return null;
     }
-    console.log('已找到测试题目:', testList);
+    console.info('已找到测试题目:', testList);
 
     const submitBtn = testDoc.querySelector('.btnSubmit');
     if (!submitBtn) {
-        console.log('[调试] 未找到提交按钮');
+        console.info('[调试] 未找到提交按钮');
         return null;
     }
     return { testDoc, testList , submitBtn };
@@ -869,7 +869,7 @@ function autoFillAnswers(testList, answerJson) {
 }
 
 function answerFixes(testList, answerHistory) {
-    console.log('开始修补答案');
+    console.info('开始修补答案');
     const answerJson = []; 
     testList.forEach(quesDiv => {
         const iTag = quesDiv.querySelector('i');
@@ -888,9 +888,9 @@ function answerFixes(testList, answerHistory) {
 
         if (type === 'multi') { // 多选题
             const options = quesDiv.querySelectorAll('span.num_option_dx');
-            console.log('多选题修补之初的table:', answerTable);
+            console.info('多选题修补之初的table:', answerTable);
             if (answerTable[qIndex].length === 0) {
-                console.log('进入初始化')
+                console.info('进入初始化')
                 answerTable[qIndex] = Array(options.length).fill(-1);
             }
             
@@ -909,17 +909,17 @@ function answerFixes(testList, answerHistory) {
                     answerTable[qIndex][ch.charCodeAt(0) - 'A'.charCodeAt(0)] = 1; 
                 });
             } else {
-                console.log('before修补的answerTable:', answerTable);
+                console.info('before修补的answerTable:', answerTable);
                 const ansArr = answerHistory[qIndex]
                     .map(record => record.answer.trim())
                     .flatMap(str => str.includes(',') ? str.split(',').map(s => s.trim()) : str.split(''));
-                console.log('ansArr:', ansArr);
+                console.info('ansArr:', ansArr);
                 const filteredArr = ansArr.filter(ch => answerTable[qIndex][ch.charCodeAt(0) - 'A'.charCodeAt(0)] !== 1);
-                console.log('filteredArr:', filteredArr);
+                console.info('filteredArr:', filteredArr);
                 if (filteredArr.length === 1) {
                     answerTable[qIndex][filteredArr[0].charCodeAt(0) - 'A'.charCodeAt(0)] = 0;
                 }
-                console.log('answerTable:', answerTable);
+                console.info('answerTable:', answerTable);
                 //confirm('debug: 可能存在多选题答案修补问题，请检查控制台输出');
             }
             let tryAnother = true;
@@ -992,14 +992,14 @@ function answerFixes(testList, answerHistory) {
                         "答案": ansStr
                     });
                 } else {
-                    console.log('copy:', copy);
-                    console.log('ansStr:', ansStr);
+                    console.info('copy:', copy);
+                    console.info('ansStr:', ansStr);
                     confirm(`题号${qNum}未找到任何有效答案`);
                 }
             }
         }
     });
-    console.log('修补答案完成:', answerJson);
+    console.info('修补答案完成:', answerJson);
     return answerJson;
 }
 
@@ -1008,7 +1008,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
 
 
     if (handleIframeLock) {
-        console.log('handleIframeChange 已加锁，跳过本次调用');
+        console.info('handleIframeChange 已加锁，跳过本次调用');
         return;
     }
     handleIframeLock = true;
@@ -1026,12 +1026,12 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
         firstLayerCancel = waitForElement(
             () => {
                 if (allTaskDown) return;
-                console.log('第一层回调执行');
+                console.info('第一层回调执行');
                 let outerDoc = findOuterDoc();
                 const learning2 = document.getElementById('dct2');
                 const learning3 = document.getElementById('dct3');
                 if (learning3 && prama === 3 && !learningFix) {
-                    console.log('检测到特殊页面结构，即将跳转');
+                    console.info('检测到特殊页面结构，即将跳转');
                     learning2.click();
                     learningFix = true;
                     return null;
@@ -1045,7 +1045,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                     secondLayerCancel = waitForElement(
                         () => {
                             if (allTaskDown) return;
-                            console.log('第二层回调执行');
+                            console.info('第二层回调执行');
                             let innerDoc = findInnerDocs(outerDoc);
                             return innerDoc;
                         },
@@ -1053,8 +1053,8 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                         (async function thirdLayer() {
                             if (!Array.isArray(InnerDocs) || InnerDocs.length === 0) {
                                 console.warn('内层Docs为空，尝试跳过');
-                                console.log('开始检测特殊页面结构');
-                                console.log('检查是否有学习测验');
+                                console.info('开始检测特殊页面结构');
+                                console.info('检查是否有学习测验');
                                 await timeSleep(10 * DEFAULT_SLEEP_TIME);
                                 let learningTest = document.getElementById('dct2');
                                 const learningTestFix = document.getElementById('dct3');
@@ -1065,10 +1065,10 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
-                                        console.log('有未完成的任务点');
+                                        console.info('有未完成的任务点');
                                     } else {
                                         // 没有未完成任务点
-                                        console.log('所有任务点已完成');
+                                        console.info('所有任务点已完成');
                                         learningTest.click();
                                         hasEnterdct2 = true;
                                         await timeSleep(DEFAULT_SLEEP_TIME);
@@ -1077,18 +1077,18 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     }   
                                     return;
                                 } else {
-                                    console.log('此章节学习测验已处理');
+                                    console.info('此章节学习测验已处理');
                                     if (prama !== 2) answerTable = [];
-                                    console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                    console.info('已处理完所有章节任务，准备跳转到下一章节');
                                     if (DEFAULT_TEST_OPTION !== 0) await timeSleep(25 * DEFAULT_SLEEP_TIME);
                                     const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
-                                        console.log('有未完成的任务点');
+                                        console.info('有未完成的任务点');
 
                                     } else {
                                         // 没有未完成任务点
-                                        console.log('所有任务点已完成');
+                                        console.info('所有任务点已完成');
                                         hasEnterdct2 = false;
                                         continueToNextChapter();
                                     }
@@ -1097,28 +1097,28 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                 return;
                             }
                             // 第三层
-                            console.log('第三层回调执行');
-                            console.log('找到的内层文档数目:', InnerDocs.length);
+                            console.info('第三层回调执行');
+                            console.info('找到的内层文档数目:', InnerDocs.length);
                             const needSkip = outerDoc.querySelectorAll('.ans-job-icon');
                             let taskCount = 0;
                             async function runTasksSerially() {
                                 for (const { innerDoc, Type } of InnerDocs) { // for...of 防错乱
-                                    console.log(`处理 ${Type} 任务点...`);
+                                    console.info(`处理 ${Type} 任务点...`);
                                     try {    
                                         if (taskCount >= needSkip.length) {
-                                            console.log('已处理完所有任务点，准备跳转到下一章节');
+                                            console.info('已处理完所有任务点，准备跳转到下一章节');
                                             if (Type === 'Work') prama = 0; 
                                         } else if (needSkip[taskCount].getAttribute('aria-label') === '任务点已完成') {
-                                            console.log('任务点已完成，跳过');
+                                            console.info('任务点已完成，跳过');
                                             if (Type === 'Work') prama = 0; 
                                         } else if (Type === 'Video') {
-                                            console.log('该章节为VIDEO,进行参数捕获');
+                                            console.info('该章节为VIDEO,进行参数捕获');
                                             await new Promise((resolve) => {
                                                 if (FourthLayerCancel) FourthLayerCancel();
                                                 FourthLayerCancel = waitForElement(
                                                     () => {
                                                         if (allTaskDown) return;
-                                                        console.log('第四层回调执行');
+                                                        console.info('第四层回调执行');
                                                         return findVideoElement(innerDoc);
                                                     },
                                                     async (innerParam) => {
@@ -1142,7 +1142,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                 );
                                             });
                                         } else if (Type === 'Pdf') {
-                                            console.log('该章节为PDF,进行参数捕获');
+                                            console.info('该章节为PDF,进行参数捕获');
                                             await new Promise((resolve) => {
                                                 if (thirdLayerCancel) thirdLayerCancel();
                                                 thirdLayerCancel = waitForElement(
@@ -1157,18 +1157,18 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                         }
                                                         const toBottom = await scrollPdfToBottom(pdfHtml);
                                                         if (toBottom) {
-                                                            console.log('PDF滚动成功！');
+                                                            console.info('PDF滚动成功！');
                                                         } else {
                                                             console.warn('PDF多次滚动无效，可能页面未加载完全');
                                                         }
                                                         await timeSleep(2 * DEFAULT_SLEEP_TIME);
-                                                        console.log('章节处理完毕');
+                                                        console.info('章节处理完毕');
                                                         resolve();
                                                     }
                                                 );
                                             });
                                         } else if (Type === 'Work') {
-                                            console.log('该章节为WORK,进行参数捕获');
+                                            console.info('该章节为WORK,进行参数捕获');
                                             await new Promise((resolve) => {
                                                 if (thirdLayerCancel) thirdLayerCancel();
                                                 thirdLayerCancel = waitForElement(
@@ -1181,7 +1181,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             resolve();
                                                             return;
                                                         }
-                                                        console.log('已找到测试题目:', testList);
+                                                        console.info('已找到测试题目:', testList);
                                                         if (prama === 2) {
                                                             console.warn('检测为不及格，开始修补模式');
                                                             const answerBasicList = testDoc.querySelectorAll('.newAnswerBx');
@@ -1213,7 +1213,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                     mark: answerMark
                                                                 });
                                                             }
-                                                            console.log('已获取到答案历史:', answerHistory);
+                                                            console.info('已获取到答案历史:', answerHistory);
                                                             //confirm('[调试],已获取到答案历史，准备修补');
                                                             let answerJson = answerFixes(testList, answerHistory);
                                                             if (answerJson.length === 0) {
@@ -1222,7 +1222,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 return;
                                                             } else {
                                                                 autoFillAnswers(testList, answerJson);
-                                                                console.log('已自动填充答案');
+                                                                console.info('已自动填充答案');
                                                                 resolve();
                                                             }
                                                             //confirm('已修补答案，准备提交');
@@ -1230,10 +1230,10 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             await timeSleep(DEFAULT_SLEEP_TIME);
                                                             const configElement = document.getElementById('workpop');
                                                             const configBtn = document.getElementById('popok');
-                                                            if (configElement && window.getComputedStyle(configElement).display !== 'none') {
+                                                            if (configElement && globalThis.getComputedStyle(configElement).display !== 'none') {
                                                                 if (configBtn) {
                                                                     configBtn.click();
-                                                                    console.log('已自动点击确定按钮');
+                                                                    console.info('已自动点击确定按钮');
                                                                 } else {
                                                                     console.warn('未找到确定按钮');
                                                                 }
@@ -1249,27 +1249,27 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 await handleIframeChange(2); 
                                                                 return;
                                                             } else {
-                                                                console.log('已成功提交测试题目');
+                                                                console.info('已成功提交测试题目');
                                                                 answerTable = [];
-                                                                console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                                                console.info('已处理完所有章节任务，准备跳转到下一章节');
                                                                 await timeSleep(25 * DEFAULT_SLEEP_TIME);
                                                                 const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                                                 if (unfinished) {
                                                                     // 存在未完成任务点
-                                                                    console.log('有未完成的任务点');
+                                                                    console.info('有未完成的任务点');
                                                                 } else {
                                                                     // 没有未完成任务点
-                                                                    console.log('所有任务点已完成');
+                                                                    console.info('所有任务点已完成');
                                                                     hasEnterdct2 = false;
                                                                     continueToNextChapter();
                                                                 }
                                                                 
                                                             }
-                                                        } else if (window._ws && window._ws.readyState === 1) {
-                                                            console.log('已找到题目，开始传输');
+                                                        } else if (globalThis._ws && globalThis._ws.readyState === 1) {
+                                                            console.info('已找到题目，开始传输');
                                                             const htmlStr = testDoc.documentElement.outerHTML;
                                                             if (answerTable) answerTable = [];
-                                                            window._ws.send(JSON.stringify({
+                                                            globalThis._ws.send(JSON.stringify({
                                                                 type: 'testDocHtml',
                                                                 html: htmlStr
                                                             }));
@@ -1283,32 +1283,32 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                         } catch (e) {
                                                                             // 不是json就忽略
                                                                             if (event.data === '收到') {
-                                                                                window._ws.removeEventListener('message', onMessage);
-                                                                                console.log('收到Python回信，继续后续流程');
+                                                                                globalThis._ws.removeEventListener('message', onMessage);
+                                                                                console.info('收到Python回信，继续后续流程');
                                                                                 resolve();
                                                                             }
                                                                             return;
                                                                         }
                                                                         // 如果能解析为json，自动填答
                                                                         autoFillAnswers(testList, answerJson);
-                                                                        window._ws.removeEventListener('message', onMessage);
-                                                                        console.log('已自动填充答案');
+                                                                        globalThis._ws.removeEventListener('message', onMessage);
+                                                                        console.info('已自动填充答案');
                                                                         resolve();
                                                                     } catch (e) {
                                                                         console.warn('处理回信时出错', e);
                                                                     }
                                                                 }
-                                                                window._ws.addEventListener('message', onMessage);
+                                                                globalThis._ws.addEventListener('message', onMessage);
                                                             });
                                                             //confirm('已创建答案，准备提交');
                                                             submitBtn.click();
                                                             await timeSleep(DEFAULT_SLEEP_TIME);
                                                             const configElement = document.getElementById('workpop');
                                                             const configBtn = document.getElementById('popok');
-                                                            if (configElement && window.getComputedStyle(configElement).display !== 'none') {
+                                                            if (configElement && globalThis.getComputedStyle(configElement).display !== 'none') {
                                                                 if (configBtn) {
                                                                     configBtn.click();
-                                                                    console.log('已自动点击确定按钮');
+                                                                    console.info('已自动点击确定按钮');
                                                                 } else {
                                                                     console.warn('未找到确定按钮');
                                                                 }
@@ -1323,17 +1323,17 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 await handleIframeChange(2); 
                                                                 return;
                                                             } else {
-                                                                console.log('已成功提交测试题目');
+                                                                console.info('已成功提交测试题目');
                                                                 answerTable = [];
-                                                                console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                                                console.info('已处理完所有章节任务，准备跳转到下一章节');
                                                                 await timeSleep(25 * DEFAULT_SLEEP_TIME);
                                                                 const unfinished = document.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                                                 if (unfinished) {
                                                                     // 存在未完成任务点
-                                                                    console.log('有未完成的任务点');
+                                                                    console.info('有未完成的任务点');
                                                                 } else {
                                                                     // 没有未完成任务点
-                                                                    console.log('所有任务点已完成');
+                                                                    console.info('所有任务点已完成');
                                                                     hasEnterdct2 = false;
                                                                     continueToNextChapter();
                                                                 }
@@ -1350,13 +1350,13 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                             
                                         }
                                     } finally {
-                                        console.log(`任务点 ${taskCount + 1} / ${needSkip.length} 已处理`);
+                                        console.info(`任务点 ${taskCount + 1} / ${needSkip.length} 已处理`);
                                         taskCount++;
                                     }
                                 }
                                 // 所有任务完成后
-                                console.log('所有章节任务已完成，准备跳转到下一章节');
-                                console.log('检查是否有学习测验');
+                                console.info('所有章节任务已完成，准备跳转到下一章节');
+                                console.info('检查是否有学习测验');
                                 await timeSleep(10 * DEFAULT_SLEEP_TIME);
                                 let learningTest = document.getElementById('dct2');
                                 const learningTestFix = document.getElementById('dct3');
@@ -1370,7 +1370,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                         console.warn('有未完成的任务点,尝试跳过');
                                     } else {
                                         // 没有未完成任务点
-                                        console.log('所有任务点已完成');
+                                        console.info('所有任务点已完成');
                                          
                                     }
                                     learningTest.click();
@@ -1379,17 +1379,17 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                     handleIframeLock = false; //
                                     await handleIframeChange(1);                                
                                 } else {
-                                    console.log('此章节学习测验已处理');
+                                    console.info('此章节学习测验已处理');
                                     if (prama !== 2) answerTable = [];
-                                    console.log('已处理完所有章节任务，准备跳转到下一章节');
+                                    console.info('已处理完所有章节任务，准备跳转到下一章节');
                                     if (DEFAULT_TEST_OPTION !== 0) await timeSleep(25 * DEFAULT_SLEEP_TIME);
                                     const unfinished = outerDoc.querySelector('.ans-job-icon[aria-label="任务点未完成"]');
                                     if (unfinished) {
                                         // 存在未完成任务点
-                                        console.log('有未完成的任务点');
+                                        console.info('有未完成的任务点');
                                     } else {
                                         // 没有未完成任务点
-                                        console.log('所有任务点已完成');
+                                        console.info('所有任务点已完成');
                                     
                                     }
                                     hasEnterdct2 = false;   
@@ -1431,7 +1431,7 @@ function startScriptWithMask(mainFunc) { // 启动脚本并创建遮罩，因为
 }
 
 function main() {
-    console.log('脚本已启动, 开始刷课...');
+    console.info('脚本已启动, 开始刷课...');
     
     const leftEl = document.querySelector(IFRAME_MAIN_FEATURE_CLASS);
     if (leftEl) {
@@ -1456,9 +1456,9 @@ document.addEventListener('visibilitychange', function(e) {
     e.stopImmediatePropagation();
 }, true);
 
-window.onblur = null;
-window.onfocus = null;
-window.addEventListener = new Proxy(window.addEventListener, {
+globalThis.onblur = null;
+globalThis.onfocus = null;
+globalThis.addEventListener = new Proxy(globalThis.addEventListener, {
     apply(target, thisArg, args) {
         if (['blur', 'focus'].includes(args[0])) return;
         return Reflect.apply(target, thisArg, args);
@@ -1469,9 +1469,9 @@ findCourseTree(); // 初始化课程树
 initializeTreeIndex();
 
 if (DEFAULT_SPEED_OPTION) {
-    console.log('强制速度模式已开启,目前倍速为:', DEFAULT_SPEED);  
+    console.info('强制速度模式已开启,目前倍速为:', DEFAULT_SPEED);  
 } else {
-    console.log('未开启强制速度模式');
+    console.info('未开启强制速度模式');
 }
 
 // 启动入口

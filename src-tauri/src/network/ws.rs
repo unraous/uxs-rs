@@ -16,10 +16,10 @@ pub fn start_ws_server() {
                 match listener.accept().await {
                     Ok((stream, _)) => {
                         tokio::spawn(async move {
-                            if let Ok(mut ws_stream) = tokio_tungstenite::accept_async(stream).await {
+                            if let Ok(mut stream) = tokio_tungstenite::accept_async(stream).await {
                                 info!("WebSocket客户端已连接");
                                 
-                                while let Some(msg) = ws_stream.next().await {
+                                while let Some(msg) = stream.next().await {
                                     match msg {
                                         Ok(msg) => {
                                             debug!("收到消息: {:?}", msg);

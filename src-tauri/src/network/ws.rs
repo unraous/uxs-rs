@@ -2,7 +2,9 @@ use futures_util::StreamExt;
 use std::thread;
 use log::{info, debug, error};
 
-pub fn start_ws_server() {
+
+/// Initializes the WebSocket server in a separate thread to handle incoming connections and messages.
+pub fn init() {
     thread::spawn(|| {
         let rt = tokio::runtime::Runtime::new().unwrap();
         rt.block_on(async {

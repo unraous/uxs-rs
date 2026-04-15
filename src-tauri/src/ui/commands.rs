@@ -1,20 +1,27 @@
-use tauri::window;
+use crate::core::script::inject;
+
+use tauri::{Manager, window};
 use log::{debug, error};
 
+/// Close the application window with a fade-out animation.
 #[tauri::command]
-pub fn close_app(window: window::Window) {
-    let webviews = window.webviews();
-    for webview in webviews {
-        debug!("webview {} 执行渐变透明动画...", webview.label());
-        if let Err(e) = webview.eval(include_str!("../scripts/fade-out.js")) {
-            error!("注入渐变动画脚本失败: {}", e);
+pub fn close(window: window::Window) {
+    debug!("接收到关闭命令，开始执行关闭动画");
+    if let Some(mask) = window.get_webview("mask") {
+        mask.show().ok();
+        if let Err(e) = inject(&mask, include_str!("../scripts/show-mask.js")) {
+            error!("注入遮罩渐变动画脚本失败: {}", e);
         }
+        std::thread::sleep(std::time::Duration::from_millis(750));
+    } else {
+        error!("未找到遮罩Webview，无法执行关闭动画");
     }
-    std::thread::sleep(std::time::Duration::from_millis(750));
     window.close().ok();
 }
 
+/// Minimize the application window.
 #[tauri::command]
-pub fn minimize_app(window: window::Window) {
+pub fn minimize(window: window::Window) {
+    debug!("接收到最小化命令，正在最小化窗口");
     window.minimize().ok();
 }

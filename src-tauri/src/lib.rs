@@ -3,18 +3,17 @@ pub mod core;
 pub mod ui;
 pub mod network;
 
-pub use ui::init_app;
-pub use ui::{close_app, minimize_app};
-pub use core::{UrlType, classify_url};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use ui::{window, commands};
+
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            close_app, minimize_app
+            commands::close, commands::minimize
         ])
-        .setup(init_app)
+        .setup(window::init)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

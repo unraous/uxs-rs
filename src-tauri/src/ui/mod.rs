@@ -1,5 +1,8 @@
-pub mod window;
 pub mod commands;
+pub mod window;
 
-pub use window::init_app;
-pub use commands::{close_app, minimize_app};
+mod webview;
+
+pub use commands::{close, minimize};
+
+pub use window::init;

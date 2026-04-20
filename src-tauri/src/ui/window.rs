@@ -24,9 +24,9 @@ pub fn init(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error:
         .icon(Image::from_path("icons/icon.ico")?)?
         .build()?; 
     
-    webview::create_in(&window, "main")?;
-    webview::create_in(&window, "chaoxing")?;
-    webview::create_in(&window, "mask")?.hide()?;
+    webview::init_on(&window, "main")?;
+    webview::init_on(&window, "chaoxing")?;
+    webview::init_on(&window, "mask")?.hide()?;
     ws::init();
 
     info!("应用窗口初始化成功");

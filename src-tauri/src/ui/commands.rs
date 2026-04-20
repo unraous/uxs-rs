@@ -1,4 +1,4 @@
-use crate::core::script::inject;
+use crate::core::script::{obtain, evaluate};
 
 use tauri::{Manager, window};
 use log::{debug, error};
@@ -9,9 +9,7 @@ pub fn close(window: window::Window) {
     debug!("接收到关闭命令，开始执行关闭动画");
     if let Some(mask) = window.get_webview("mask") {
         mask.show().ok();
-        if let Err(e) = inject(&mask, include_str!("../scripts/show-mask.js")) {
-            error!("注入遮罩渐变动画脚本失败: {}", e);
-        }
+        evaluate(&mask, obtain(crate::core::url::Type::Mask).unwrap_or("")).ok();
         std::thread::sleep(std::time::Duration::from_millis(750));
     } else {
         error!("未找到遮罩Webview，无法执行关闭动画");

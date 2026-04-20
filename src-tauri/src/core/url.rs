@@ -7,6 +7,7 @@ pub enum Type {
     Course,
     Login,
     MainSpace,
+    Mask,
     Other,
 }
 
@@ -15,6 +16,10 @@ pub enum Type {
 /// and classifies it.
 pub fn classify(url: &tauri::Url) -> Type {
     let host = url.host_str().unwrap_or_default();
+
+    if url.as_str() == "about:blank" {
+        return Type::Mask;
+    }
 
     if !host.ends_with("chaoxing.com") {
         warn!("检测到非超星域名URL: {}", url.as_str());
@@ -46,6 +51,9 @@ mod tests {
         
         let url = "https://passport2.chaoxing.com/login?refer=https://www.chaoxing.com".parse().unwrap();
         assert_eq!(classify(&url), Type::Login);
+
+        let url = "about:blank".parse().unwrap();
+        assert_eq!(classify(&url), Type::Mask);
     }
 }
 

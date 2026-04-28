@@ -3,21 +3,20 @@ use crate::config::CONFIG;
 use chrono::Local;
 use fern::Dispatch;
 use log::info;
-use std::fs;
 
 /// Initializes the logging system using the `fern` crate, configuring both file and console outputs with a custom format.
 pub fn init() -> Result<(), fern::InitError> {
-    fs::create_dir_all(&CONFIG.paths.logs)?;
+    CONFIG.paths.ensure()?;
 
     let timestamp = Local::now().format("%Y-%m-%d_%H-%M-%S");
-    let log_file = CONFIG.paths.logs.join(format!("{}.log", timestamp));
+    let log_file = CONFIG.paths.dir("logs").join(format!("{}.log", timestamp));
 
     Dispatch::new()
         // 配置格式
         .format(|out, message, record| {
             out.finish(format_args!(
                 "[{} {} {}] {}",
-                chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                Local::now().format("%Y-%m-%d %H:%M:%S"),
                 record.level(),
                 record.target(),
                 message

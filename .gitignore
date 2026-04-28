@@ -27,4 +27,5 @@ dist-ssr
 *.sw?
 .ignore/
 
+uxs-data
 uxs-data/*

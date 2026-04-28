@@ -31,6 +31,6 @@ pub fn init() -> Result<(), fern::InitError> {
         // 应用
         .apply()?;
 
-    info!("日志系统初始化成功，日志文件路径: {:?}", log_file);
+    info!("日志系统初始化成功，日志文件路径: {}", log_file.display());
     Ok(())
 }

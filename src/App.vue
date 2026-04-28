@@ -1,21 +1,32 @@
 <script setup lang="ts">
+import { invoke } from '@tauri-apps/api/core';
+import { ref, onMounted } from 'vue';
 import MenuBar from '@/layouts/MenuBar.vue';
 import ConfigPanel from '@/layouts/ConfigPanel.vue';
 
+const version = ref('2.0.0');
+const author = ref('unraous');
+
+onMounted(async () => {
+  try {
+    version.value = await invoke<string>('metadata', { key: 'version' });
+    author.value = await invoke<string>('metadata', { key: 'author' });
+  } catch (error) {
+    console.error('Failed to load metadata:', error);
+  }
+});
 </script>
 
 <template>
   <main class="container">
     <MenuBar/>
     <div class="main-layout">
-      <div class="left-panel">
-      </div>
+      <div class="left-panel"></div>
       <div class="right-panel">
         <ConfigPanel/>
-        <div class="chaoxing-webview">
-        </div>
+        <div class="chaoxing-webview"></div>
         <div class="version-info">
-          <p>by unraous v2.0.0</p>
+          <p>by {{ author }} v{{ version }}</p>
         </div>
       </div>
     </div>

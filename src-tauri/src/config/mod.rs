@@ -8,7 +8,7 @@ use serde::{Serialize, Deserialize};
 use once_cell::sync::Lazy;
 use std::fs;
 use toml;
-use log::{info, warn};
+use log::info;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
@@ -26,6 +26,8 @@ impl Default for Config {
 }
 
 impl Config {
+    // In there the logget has not been initialized, so just ignore the error and use default config when failed to load the config file.
+    // Hope there won't be a hidden danger in this.
     fn load() -> Self {
         let config = Self::default();
         match toml::from_str::<Config>(
@@ -33,12 +35,8 @@ impl Config {
                 .unwrap_or_default().as_str()
         ) {
             Ok(loaded) => loaded,
-            Err(e) => {
-                warn!("加载配置失败，使用默认配置: {}", e);
-                config
-            }
-        }
-        
+            Err(_) => config
+        } 
     }
 
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
@@ -46,7 +44,7 @@ impl Config {
             &self.paths.file("config"),
             toml::to_string_pretty(&self)?
         )?;
-        info!("配置已保存到 TOML 文件");
+        info!("配置已保存到 {}", self.paths.file("config").display());
         Ok(())
     }
 }

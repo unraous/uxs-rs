@@ -14,7 +14,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            commands::close, commands::minimize
+            commands::close, commands::minimize, commands::metadata
         ])
         .setup(window::init)
         .run(tauri::generate_context!())

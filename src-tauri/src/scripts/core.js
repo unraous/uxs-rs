@@ -1284,7 +1284,7 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                             // 不是json就忽略
                                                                             if (event.data === '收到') {
                                                                                 globalThis._ws.removeEventListener('message', onMessage);
-                                                                                console.info('收到Python回信，继续后续流程');
+                                                                                console.info('收到服务端回信，继续后续流程');
                                                                                 resolve();
                                                                             }
                                                                             return;

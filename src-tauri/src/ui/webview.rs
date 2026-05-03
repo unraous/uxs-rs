@@ -2,9 +2,11 @@ use crate::core::script::load_on;
 
 use anyhow;
 use tauri::{LogicalPosition, LogicalSize, Webview, WebviewBuilder, WebviewUrl};
+use log::debug;
 
 
 pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn std::error::Error>> {
+    debug!("开始初始化Webview [{}]", label);
     let logical_size: LogicalSize<f64> = tauri::LogicalSize::from_physical(
         window.inner_size()?, window.scale_factor()?
     );
@@ -35,5 +37,8 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
         _ => return Err(anyhow::anyhow!("未知的Webview标签").into()),
     };
 
+    debug!("Webview [{}] 初始化参数 - 位置: ({}, {}), 大小: ({}x{})",
+        label, position.x, position.y, size.width, size.height
+    );
     Ok(window.add_child(builder, position, size)?)
 }

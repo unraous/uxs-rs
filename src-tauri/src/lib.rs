@@ -2,13 +2,13 @@
 pub mod core;
 pub mod commands;
 pub mod config;
-pub mod ui;
+pub mod app;
 pub mod network;
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    use ui::window;
+    use app::window;
     
     core::logger::init().expect("Failed to initialize logger");
 

@@ -3,7 +3,6 @@ pub mod course;
 pub mod window;
 
 
-
 #[macro_export]
 macro_rules! register {
     () => {{

@@ -22,10 +22,7 @@ fn cwd() -> PathBuf {
 fn cwd_parent() -> PathBuf {
     cwd().parent()
         .map(Path::to_path_buf) 
-        .ok_or(Error::new(
-            std::io::ErrorKind::Other,
-            "No parent directory"
-        ))
+        .ok_or(Error::other("No parent directory"))
         .unwrap_or_else(|e| {
             error!("Failed to get parent directory: {}", e);
             PathBuf::from("..")
@@ -64,16 +61,6 @@ impl PathsConfig {
             }
         }
         Ok(())
-    }
-
-    pub fn file(&self, key: &str) -> &PathBuf {
-        self.files.get(key)
-            .expect(&format!("配置中缺少必要的文件路径: {}", key))
-    }
-
-    pub fn dir(&self, key: &str) -> &PathBuf {
-        self.dirs.get(key)
-            .expect(&format!("配置中缺少必要的目录路径: {}", key))
     }
 }
 

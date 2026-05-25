@@ -15,9 +15,10 @@ impl Default for MetadataConfig {
             author: "unraous".into(),
             title: "uxuescript".into(),
             version: "2.0.0".into(),
-            log_level: match cfg!(debug_assertions) {
-                true => LevelFilter::Debug,
-                false => LevelFilter::Info,
+            log_level: if cfg!(debug_assertions) {
+                LevelFilter::Debug
+            } else {
+                LevelFilter::Info
             },
         }
     }

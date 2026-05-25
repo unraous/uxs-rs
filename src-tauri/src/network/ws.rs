@@ -60,5 +60,5 @@ fn thread_init() {
 
 /// Initializes the WebSocket server in a separate thread to handle incoming connections and messages.
 pub fn setup() {
-        thread::spawn(thread_init);
+    thread::spawn(thread_init);
 }

@@ -26,7 +26,7 @@ pub fn load_on(
     payload: tauri::webview::PageLoadPayload
 ) {
     if let tauri::webview::PageLoadEvent::Finished = payload.event() {
-        let url_type = classify(&payload.url());
+        let url_type = classify(payload.url());
         debug!("URL \"{}\" 加载完成, 类别: {:?}", payload.url(), url_type);
 
         if let Some(script) = obtain(url_type) {

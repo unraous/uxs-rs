@@ -9,7 +9,7 @@ pub fn init() -> Result<(), fern::InitError> {
     CONFIG.paths.ensure()?;
 
     let timestamp = Local::now().format("%Y-%m-%d_%H-%M-%S");
-    let log_file = CONFIG.paths.dir("logs").join(format!("{}.log", timestamp));
+    let log_file = CONFIG.paths.dirs["logs"].join(format!("{}.log", timestamp));
 
     Dispatch::new()
         // 配置格式

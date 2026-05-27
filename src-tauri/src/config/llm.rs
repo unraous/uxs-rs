@@ -2,9 +2,31 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DeepSeekConfig {
+    pub api_key: String,
+    pub models: Vec<String>,
+    pub chosen_model: String,
+}
+
+impl Default for DeepSeekConfig {
+    fn default() -> Self {
+        Self {
+            api_key: String::new(),
+            models: vec![
+                String::from("deepseek-v4-flash"),
+                String::from("deepseek-v4-pro"),
+            ],
+            chosen_model: String::from("deepseek-v4-flash"),
+        }
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GoogleConfig {
     pub api_key: String,
     pub models: Vec<String>,
+    pub chosen_model: String,
 }
 
 impl Default for GoogleConfig {
@@ -20,6 +42,7 @@ impl Default for GoogleConfig {
                 String::from("gemini-pro-latest"),
                 String::from("gemma-4-31b-it")
             ],
+            chosen_model: String::from("gemini-3.1-flash-lite"),
         }
     }
 }
@@ -28,6 +51,7 @@ impl Default for GoogleConfig {
 pub struct MoonshotConfig {
     pub api_key: String,
     pub models: Vec<String>,
+    pub chosen_model: String,
 }
 
 impl Default for MoonshotConfig {
@@ -39,6 +63,7 @@ impl Default for MoonshotConfig {
                 String::from("kimi-k2.6"),
                 String::from("kimi-k2.5"),
             ],
+            chosen_model: String::from("moonshot-v1-8k"),
         }
     }
 }
@@ -47,6 +72,7 @@ impl Default for MoonshotConfig {
 pub struct BigModelConfig {
     pub api_key: String,
     pub models: Vec<String>,
+    pub chosen_model: String,
 }
 
 impl Default for BigModelConfig {
@@ -60,6 +86,7 @@ impl Default for BigModelConfig {
                 String::from("glm-5-turbo"),
                 String::from("glm-5.1"),
             ],
+            chosen_model: String::from("glm-4.7-flash"),
         }
     }
 }
@@ -68,6 +95,7 @@ impl Default for BigModelConfig {
 pub struct OpenAIConfig {
     pub api_key: String,
     pub models: Vec<String>,
+    pub chosen_model: String,
 }
 
 impl Default for OpenAIConfig {
@@ -80,6 +108,7 @@ impl Default for OpenAIConfig {
                 String::from("gpt-5.4-mini"),
                 String::from("gpt-5.4"),
             ],
+            chosen_model: String::from("gpt-5"),
         }
     }
 }
@@ -88,6 +117,7 @@ impl Default for OpenAIConfig {
 pub struct OpenrouterConfig {
     pub api_key: String,
     pub models: Vec<String>,
+    pub chosen_model: String,
 }
 
 impl Default for OpenrouterConfig {
@@ -99,6 +129,7 @@ impl Default for OpenrouterConfig {
                 String::from("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
                 String::from("google/gemma-4-31b-it:free"),
             ],
+            chosen_model: String::from("deepseek/deepseek-v4-flash:free"),
         }
     }
 }
@@ -106,6 +137,7 @@ impl Default for OpenrouterConfig {
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct LocalOllamaConfig {
     pub models: Vec<String>,
+    pub chosen_model: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
@@ -117,6 +149,7 @@ pub struct CustomLLMConfig {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct LLMConfig {
+    pub deepseek: DeepSeekConfig,
     pub google: GoogleConfig,
     pub moonshot: MoonshotConfig,
     pub bigmodel: BigModelConfig,

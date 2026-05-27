@@ -1,6 +1,7 @@
 mod path;
 mod metadata;
-mod llm;
+
+pub mod llm;
 
 use metadata::MetadataConfig;
 use path::PathsConfig;

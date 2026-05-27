@@ -29,3 +29,6 @@ dist-ssr
 
 uxs-data
 uxs-data/*
+
+.env
+.env.*

@@ -9,9 +9,6 @@
 use image::DynamicImage;
 use tract_onnx::prelude::*;
 
-const LABELS_TEXT: &str = include_str!("../../../model/keys.txt");
-const ONNX_MODEL: &[u8] = include_bytes!("../../../model/chineseocr_lite.onnx");
-
 pub struct CRNNHandle {
     model: TypedRunnableModel<TypedModel>,
 }
@@ -19,7 +16,9 @@ pub struct CRNNHandle {
 impl CRNNHandle {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
         let model = tract_onnx::onnx()
-            .model_for_read(&mut std::io::Cursor::new(ONNX_MODEL))?
+            .model_for_read(
+                &mut std::io::Cursor::new(include_bytes!("../../../model/chineseocr_lite.onnx"))
+            )?
             .into_typed()?
             .into_optimized()?
             .into_runnable()?;
@@ -80,7 +79,7 @@ impl CRNNHandle {
 }
 
 fn decode_output(indices: &[usize], length: usize) -> Result<String, Box<dyn std::error::Error>> {
-    let labels: Vec<&str> = LABELS_TEXT.lines().collect();
+    let labels: Vec<&str> = include_str!("../../../model/keys.txt").lines().collect();
     
     let mut output = String::new();
     for i in 0..length {

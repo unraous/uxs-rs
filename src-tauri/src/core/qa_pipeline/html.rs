@@ -3,9 +3,9 @@ use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use regex::Regex;
 use scraper::{Html, Selector};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Question {
     #[serde(rename = "题号")]
     pub id: String,

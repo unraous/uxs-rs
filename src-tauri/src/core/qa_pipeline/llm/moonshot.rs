@@ -1,17 +1,17 @@
 use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 
 use crate::core::qa_pipeline::html::Question;
-use crate::config::llm::DeepSeekConfig;
+use crate::config::llm::MoonshotConfig;
 
 use async_trait::async_trait;
 
 #[async_trait]
-impl LLM for DeepSeekConfig {
+impl LLM for MoonshotConfig {
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
         // 参数验证
         if self.api_key.is_empty() {
-            log::error!("Deepseek API key 未配置");
-            return Err("DeepSeek API key is empty".into());
+            log::error!("Moonshot API key 未配置");
+            return Err("Moonshot API key is empty".into());
         }
         if question.is_empty() {
             log::warn!("接收到空的题目列表，将返回空答案数组");
@@ -19,7 +19,7 @@ impl LLM for DeepSeekConfig {
         }
 
         if self.chosen_model.is_empty() {
-            return Err("No DeepSeek model selected".into());
+            return Err("No Moonshot model selected".into());
         }
 
         let request_body = serde_json::json!({
@@ -34,17 +34,12 @@ impl LLM for DeepSeekConfig {
                     "content": serde_json::to_string(&question)?
                 }
             ],
-            "temperature": 0.3,
-            "top_p": 0.95,
-            "response_format": {
-                "type": "json_object"
-            }
         });
 
         // 发送 HTTP 请求
         let client = reqwest::Client::new();
         let response = client
-            .post("https://api.deepseek.com/chat/completions")
+            .post("https://api.moonshot.cn/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
             .json(&request_body)
@@ -59,7 +54,7 @@ impl LLM for DeepSeekConfig {
             let answers = serde_json::from_str::<Vec<AnswerItem>>(content)?;
             Ok(answers)
         } else {
-            Err("No valid content in DeepSeek response".into())
+            Err(format!("No valid content in Moonshot response: {}", data).into())
         }
     }
 }
@@ -86,17 +81,19 @@ mod tests {
 
         dotenv::dotenv().ok();
         
-        // 从环境变量 DEEPSEEK_API_KEY 读取，如果不存在则报错
-        let api_key = std::env::var("DEEPSEEK_API_KEY")
-            .expect("请在 .env 文件或环境变量中设置 DEEPSEEK_API_KEY");
+        // 从环境变量 MOONSHOT_API_KEY 读取，如果不存在则报错
+        let api_key = std::env::var("MOONSHOT_API_KEY")
+            .expect("请在 .env 文件或环境变量中设置 MOONSHOT_API_KEY");
 
 
-        let config = DeepSeekConfig { api_key, ..Default::default() };
+        let config = MoonshotConfig { api_key, ..Default::default() };
 
         match config.solve(questions.clone()).await {
             Ok(answers) => {
                 assert_eq!(answers.len(), questions.len());
-                println!("收到回答，{:?}", answers);
+                for (i, answer) in answers.iter().enumerate() {
+                    println!("问题 {} 的回答: {:?}", i + 1, answer);
+                }
             }
             Err(e) => {
                 println!("调用失败: {}", e);

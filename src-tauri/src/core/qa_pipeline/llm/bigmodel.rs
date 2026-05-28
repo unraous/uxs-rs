@@ -101,7 +101,8 @@ mod tests {
                 }
             }
             Err(e) => {
-                println!("调用失败 (可能是因为 mock-key): {}", e);
+                println!("调用失败: {}", e);
+                panic!("测试失败");
             }
         }
     }

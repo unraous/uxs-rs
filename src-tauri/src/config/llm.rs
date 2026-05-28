@@ -125,11 +125,12 @@ impl Default for OpenrouterConfig {
         Self {
             api_key: String::new(),
             models: vec![
+                String::from("moonshotai/kimi-k2.6:free"),
                 String::from("deepseek/deepseek-v4-flash:free"),
                 String::from("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
                 String::from("google/gemma-4-31b-it:free"),
             ],
-            chosen_model: String::from("deepseek/deepseek-v4-flash:free"),
+            chosen_model: String::from("moonshotai/kimi-k2.6:free"),
         }
     }
 }

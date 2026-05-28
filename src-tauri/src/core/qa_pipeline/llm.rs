@@ -2,6 +2,8 @@ mod deepseek;
 mod bigmodel;
 mod google;
 mod moonshot;
+mod openai;
+mod openrouter;
 
 use super::html::Question;
 

@@ -1,5 +1,6 @@
 mod deepseek;
 mod bigmodel;
+mod google;
 
 use super::html::Question;
 

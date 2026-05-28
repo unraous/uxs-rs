@@ -21,11 +21,9 @@ impl LLM for DeepSeekConfig {
         if self.chosen_model.is_empty() {
             return Err("No DeepSeek model selected".into());
         }
-            
-            
 
-        // 使用 json! 宏构造请求体
         let request_body = serde_json::json!({
+            "model": self.chosen_model,
             "messages": [
                 {
                     "role": "system",
@@ -36,10 +34,8 @@ impl LLM for DeepSeekConfig {
                     "content": serde_json::to_string(&question)?
                 }
             ],
-            "model": self.chosen_model,
             "temperature": 0.3,
             "top_p": 0.95,
-            "max_tokens": 8192,
             "response_format": {
                 "type": "json_object"
             }

@@ -1,7 +1,7 @@
 use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 
 use crate::core::qa_pipeline::html::Question;
-use crate::config::llm::MoonshotConfig;
+use crate::config::llm::moonshot::MoonshotConfig;
 
 use async_trait::async_trait;
 

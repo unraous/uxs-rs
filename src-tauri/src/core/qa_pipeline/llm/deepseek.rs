@@ -1,7 +1,7 @@
 use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 
 use crate::core::qa_pipeline::html::Question;
-use crate::config::llm::DeepSeekConfig;
+use crate::config::llm::deepseek::DeepSeekConfig;
 
 use async_trait::async_trait;
 

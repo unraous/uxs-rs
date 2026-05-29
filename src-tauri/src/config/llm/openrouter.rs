@@ -1,0 +1,23 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct OpenrouterConfig {
+    pub api_key: String,
+    pub models: Vec<String>,
+    pub chosen_model: String,
+}
+
+impl Default for OpenrouterConfig {
+    fn default() -> Self {
+        Self {
+            api_key: String::new(),
+            models: vec![
+                String::from("moonshotai/kimi-k2.6:free"),
+                String::from("deepseek/deepseek-v4-flash:free"),
+                String::from("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
+                String::from("google/gemma-4-31b-it:free"),
+            ],
+            chosen_model: String::from("moonshotai/kimi-k2.6:free"),
+        }
+    }
+}

@@ -8,13 +8,13 @@ mod openrouter;
 use super::html::Question;
 
 use crate::config::llm::{
-    DeepSeekConfig,
-    GoogleConfig, 
-    MoonshotConfig, 
-    BigModelConfig, 
-    OpenAIConfig, 
-    OpenrouterConfig, 
-    LocalOllamaConfig, 
+    deepseek::DeepSeekConfig,
+    google::GoogleConfig,
+    moonshot::MoonshotConfig,
+    bigmodel::BigModelConfig,
+    openai::OpenAIConfig,
+    openrouter::OpenrouterConfig,
+    local_ollama::LocalOllamaConfig,
     CustomLLMConfig
 };
 

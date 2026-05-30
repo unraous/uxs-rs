@@ -4,6 +4,7 @@ mod google;
 mod moonshot;
 mod openai;
 mod openrouter;
+mod local_ollama;
 
 use super::html::Question;
 

@@ -18,7 +18,7 @@ struct OllamaModelItem {
 
 
 impl LocalOllamaConfig {
-    async fn load_models(&mut self) {
+    pub async fn load_models(&mut self) {
         let response = reqwest::get("http://localhost:11434/api/tags")
             .await
             .unwrap_or_else(|e| {

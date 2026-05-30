@@ -8,6 +8,11 @@
 
 use image::DynamicImage;
 use tract_onnx::prelude::*;
+use once_cell::sync::Lazy;
+
+pub static CRNN_MODEL: Lazy<Result<CRNNHandle, String>> = Lazy::new(|| {
+    CRNNHandle::new().map_err(|e| e.to_string())
+});
 
 pub struct CRNNHandle {
     model: TypedRunnableModel<TypedModel>,
@@ -30,6 +35,10 @@ impl CRNNHandle {
     pub fn predict(&self, image: DynamicImage) -> Result<String, Box<dyn std::error::Error>> {
         let img_rgb = image.to_rgb8();
         let (w, h) = img_rgb.dimensions();
+        
+        if w == 0 || h == 0 {
+            return Err("Invalid image dimensions".into());
+        }
         
         let scale = h as f32 / 32.0;
         let new_w = (w as f32 / scale) as u32;

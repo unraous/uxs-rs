@@ -8,17 +8,6 @@ mod local_ollama;
 
 use super::html::Question;
 
-use crate::config::llm::{
-    deepseek::DeepSeekConfig,
-    google::GoogleConfig,
-    moonshot::MoonshotConfig,
-    bigmodel::BigModelConfig,
-    openai::OpenAIConfig,
-    openrouter::OpenrouterConfig,
-    local_ollama::LocalOllamaConfig,
-    CustomLLMConfig
-};
-
 use async_trait::async_trait;
 use serde::{Serialize, Deserialize};
 
@@ -99,19 +88,10 @@ pub struct AnswerItem {
     pub answer: String,
 }
 
-pub enum LLMProvider {
-    DeepSeek(DeepSeekConfig),
-    Google(GoogleConfig),
-    Moonshot(MoonshotConfig),
-    BigModel(BigModelConfig),
-    OpenAI(OpenAIConfig),
-    Openrouter(OpenrouterConfig),
-    LocalOllama(LocalOllamaConfig),
-    Custom(CustomLLMConfig),
-}
 
 #[async_trait]
 pub trait LLM {
+    fn set_key(&mut self, key: &str);
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>>;
 }
 

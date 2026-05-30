@@ -7,15 +7,20 @@ use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for LocalOllamaConfig {
+    fn set_key(&mut self, _key: &str) {
+        log::warn!("LocalOllama 不需要 API Key，此处不执行任何操作");
+    }
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
         if question.is_empty() {
             log::warn!("接收到空的题目列表，将返回空答案数组");
             return Ok(Vec::new());
         }
 
-        if self.chosen_model.is_empty() {
+        if self.models.is_empty() {
+            log::error!("没有可用的 LocalOllama 模型，请先加载模型");
             return Err("No LocalOllama model selected".into());
         }
+
         log::debug!("将使用 LocalOllama 模型 {} 进行推理", self.chosen_model);
 
         // 1. 修正：添加 "stream": false

@@ -7,6 +7,11 @@ use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for OpenrouterConfig {
+    fn set_key(&mut self, key: &str) {
+        self.api_key = key.to_string();
+        log::info!("Openrouter API key 已更新");
+    }
+
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
         // 参数验证
         if self.api_key.is_empty() {

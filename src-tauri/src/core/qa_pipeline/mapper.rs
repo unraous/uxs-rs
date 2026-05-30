@@ -2,13 +2,20 @@ use std::collections::HashMap;
 
 use super::html::{Question, QuestionsRaw};
 use super::render::render_glyphs;
-use super::recognizer::CRNNHandle;
 
 fn create_maps(font: &[u8]) -> HashMap<char, char> {
     let mut maps = HashMap::new();
     let glyphs = render_glyphs(font).unwrap_or_default();
     log::debug!("成功渲染 {} 个字形", glyphs.len());
-    let recognizer = CRNNHandle::new().expect("Failed to initialize CRNN model");
+    
+    let recognizer = match &*super::recognizer::CRNN_MODEL {
+        Ok(model) => model,
+        Err(e) => {
+            log::error!("OCR 全局模型加载失败: {}", e);
+            return maps;
+        }
+    };
+    
     for glyph in glyphs {
         maps.insert(
             glyph.original_char, 

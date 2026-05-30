@@ -7,6 +7,11 @@ use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for BigModelConfig {
+    fn set_key(&mut self, key: &str) {
+        self.api_key = key.to_string();
+        log::info!("BigModel API key 已更新");
+    }
+
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
         // 参数验证
         if self.api_key.is_empty() {
@@ -34,7 +39,7 @@ impl LLM for BigModelConfig {
                     "content": serde_json::to_string(&question)?
                 }
             ],
-            "temperature": 0.3,
+            "temperature": 0.1,
             "top_p": 0.95,
             "response_format": {
                 "type": "json_object"

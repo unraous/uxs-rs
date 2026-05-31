@@ -29,57 +29,21 @@ impl LLM for GoogleConfig {
 
         // see reference: https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
         // the mimeType is not string but enum, so need to use ""APPLICATION_JSON"" instead of "application/json"
-        let request_body = serde_json::json!({
-            "systemInstruction": {
-                "parts": [
-                    {
-                        "text": SYSTEM_PROMPT,
-                    }
-                ]
-            },
-            "contents": [
-                {
-                    "parts": [
-                        {
-                            "text": serde_json::to_string(&question)?,
-                        }
-                    ]
-                }
-            ],
-            "generationConfig": {
-                "responseFormat": {
-                    "text": {
-                        "mimeType": "APPLICATION_JSON",
-                        "schema": {
-                            "type": "ARRAY",
-                            "items": {
-                                "type": "OBJECT",
-                                "properties": {
-                                    "题号": { 
-                                        "type": "STRING",
-                                        "description": "题目的编号或索引，应与输入的题目列表中的题号对应"
-                                    },
-                                    "解析": { 
-                                        "type": "STRING",
-                                        "description": "对题目的解析/分析内容，包含错别字的猜测与修正，以及对题目选项的分析，最后给出正确答案的选择理由"
-                                    },
-                                    "答案": { 
-                                        "type": "STRING",
-                                        "description": "题目的答案，通常是选项中的一个，如 A、B、C、D 等，或者是简答题的直接答案文本，具体取决于题目的类型"
-                                    }
-                                },
-                                "required": ["题号", "解析", "答案"]
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        let mut request_body: serde_json::Value = serde_json::from_str(
+            include_str!("./google-request.json")
+        )?;
 
-        // 发送 HTTP 请求
+        // 2. 动态注入变量 (直接通过路径赋值)
+        request_body["systemInstruction"]["parts"][0]["text"] = serde_json::json!(SYSTEM_PROMPT);
+        request_body["contents"][0]["parts"][0]["text"] = serde_json::json!(serde_json::to_string(&question)?);        
+
+        // 3. 发送请求
         let client = reqwest::Client::new();
         let response = client
-            .post(format!("https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent", self.chosen_model))
+            .post(format!(
+                "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
+                self.chosen_model
+            ))
             .header("x-goog-api-key", &self.api_key)
             .header("Content-Type", "application/json")
             .json(&request_body)
@@ -89,13 +53,12 @@ impl LLM for GoogleConfig {
         // 解析响应
         let data: serde_json::Value = response.json().await?;
 
-        if let Some(content) = data["candidates"][0]["content"]["parts"][0]["text"].as_str() {
-            // 解析 LLM 返回 of JSON 答案数组
-            let answers = serde_json::from_str::<Vec<AnswerItem>>(content)?;
-            Ok(answers)
-        } else {
-            Err(format!("No valid content in Google response: {}", data).into())
-        }
+        let content = data["candidates"][0]["content"]["parts"][0]["text"]
+            .as_str()
+            .ok_or_else(|| format!("No valid content in Google response: {}", data))?;
+
+        let answers = serde_json::from_str::<Vec<AnswerItem>>(content)?;
+        Ok(answers)
     }
 }
 

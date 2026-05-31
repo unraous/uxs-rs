@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use super::html::{Question, QuestionsRaw};
+use super::recognizer::CRNN_MODEL;
 use super::render::render_glyphs;
 
 fn create_maps(font: &[u8]) -> HashMap<char, char> {
@@ -8,18 +9,10 @@ fn create_maps(font: &[u8]) -> HashMap<char, char> {
     let glyphs = render_glyphs(font).unwrap_or_default();
     log::debug!("成功渲染 {} 个字形", glyphs.len());
     
-    let recognizer = match &*super::recognizer::CRNN_MODEL {
-        Ok(model) => model,
-        Err(e) => {
-            log::error!("OCR 全局模型加载失败: {}", e);
-            return maps;
-        }
-    };
-    
     for glyph in glyphs {
         maps.insert(
             glyph.original_char, 
-            recognizer.predict(glyph.image)
+            CRNN_MODEL.predict(glyph.image)
                 .unwrap_or_default().chars().next()
                 .unwrap_or('?')
         );

@@ -1,6 +1,4 @@
 /// This module provides functions for classifying URLs and determining if they require modification scripts.
-use log::{warn};
-
 /// Represents the type of a URL based on its structure and domain.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Type {
@@ -21,8 +19,8 @@ pub fn classify(url: &tauri::Url) -> Type {
         return Type::Mask;
     }
 
-    if !host.ends_with("chaoxing.com") {
-        warn!("检测到非超星域名URL: {}", url.as_str());
+    if host != "chaoxing.com" && !host.ends_with(".chaoxing.com") {
+        log::warn!("检测到非超星域名URL: {}", url.as_str());
         return Type::Other;
     }
 

@@ -25,10 +25,12 @@
  * 版本：v1.2.2
  */
 
+// 由 Rust 端传入的参数对象，包含用户设置的选项，具体声明见 globals.d.ts
+const _args = typeof args === 'undefined' ? {} : args;
 
-const DEFAULT_TEST_OPTION = globalThis.LAUNCH_OPTION ?? 1;
-const DEFAULT_SPEED_OPTION = globalThis.FORCE_SPEED ?? false;
-const DEFAULT_SPEED = globalThis.SPEED ?? 2;
+const DEFAULT_TEST_OPTION = _args?.launchOption ?? 1;
+const DEFAULT_SPEED_OPTION = _args?.forceSpeed ?? false;
+const DEFAULT_SPEED = _args?.speed ?? 2;
 
 console.info('测试选项:', DEFAULT_TEST_OPTION);
 console.info('强制倍速选项:', DEFAULT_SPEED_OPTION);

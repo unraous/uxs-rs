@@ -10,26 +10,42 @@ use image::DynamicImage;
 use tract_onnx::prelude::*;
 use once_cell::sync::Lazy;
 
-pub static CRNN_MODEL: Lazy<Result<CRNNHandle, String>> = Lazy::new(|| {
-    CRNNHandle::new().map_err(|e| e.to_string())
-});
-
 pub struct CRNNHandle {
     model: TypedRunnableModel<TypedModel>,
+    labels: Vec<&'static str>,
+}
+
+impl Default for CRNNHandle {
+    fn default() -> Self {
+        let model = (|| -> Result<TypedRunnableModel<TypedModel>, Box<dyn std::error::Error>> {
+            let model = tract_onnx::onnx()
+                .model_for_read(&mut std::io::Cursor::new(include_bytes!("../../../model/chineseocr_lite.onnx")))?
+                .into_typed()?
+                .into_optimized()?
+                .into_runnable()?;
+            Ok(model)
+        })().expect("致命错误：无法初始化 CRNN OCR 模型。请检查模型文件是否完整或硬件环境。");
+
+        log::debug!("CRNN 模型与标签加载成功");
+
+        let labels = include_str!("../../../model/keys.txt").lines().collect();
+
+        CRNNHandle { model, labels }
+    }
 }
 
 impl CRNNHandle {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
-        let model = tract_onnx::onnx()
-            .model_for_read(
-                &mut std::io::Cursor::new(include_bytes!("../../../model/chineseocr_lite.onnx"))
-            )?
-            .into_typed()?
-            .into_optimized()?
-            .into_runnable()?;
-        
-        log::debug!("CRNN模型加载成功，准备进行字符识别");
-        Ok(CRNNHandle { model })
+    fn decode_output(&self, indices: &[usize], length: usize) -> Result<String, Box<dyn std::error::Error>> {
+    
+        let mut output = String::new();
+        for i in 0..length {
+            if indices[i] != 0 && !(i > 0 && indices[i - 1] == indices[i]) {
+                if let Some(label) = self.labels.get(indices[i] - 1) {
+                    output.push_str(label);
+                }
+            }
+        }
+        Ok(output)
     }
 
     pub fn predict(&self, image: DynamicImage) -> Result<String, Box<dyn std::error::Error>> {
@@ -37,7 +53,7 @@ impl CRNNHandle {
         let (w, h) = img_rgb.dimensions();
         
         if w == 0 || h == 0 {
-            return Err("Invalid image dimensions".into());
+            return Err("图片尺寸异常，无法进行 OCR 识别。".into());
         }
         
         let scale = h as f32 / 32.0;
@@ -83,21 +99,8 @@ impl CRNNHandle {
             result.push(max_idx);
         }
         
-        decode_output(&result, seq_len)
+        self.decode_output(&result, seq_len)
     }
 }
 
-fn decode_output(indices: &[usize], length: usize) -> Result<String, Box<dyn std::error::Error>> {
-    let labels: Vec<&str> = include_str!("../../../model/keys.txt").lines().collect();
-    
-    let mut output = String::new();
-    for i in 0..length {
-        if indices[i] != 0 && !(i > 0 && indices[i - 1] == indices[i]) {
-            if let Some(label) = labels.get(indices[i] - 1) {
-                output.push_str(label);
-            }
-        }
-    }
-    
-    Ok(output)
-}
+pub static CRNN_MODEL: Lazy<CRNNHandle> = Lazy::new(CRNNHandle::default);

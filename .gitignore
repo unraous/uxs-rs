@@ -32,3 +32,5 @@ uxs-data/*
 
 .env
 .env.*
+
+.antigravitycli/*

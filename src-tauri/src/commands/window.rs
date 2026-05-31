@@ -9,7 +9,7 @@ pub fn close(window: window::Window) {
     debug!("正在执行关闭动画并关闭窗口");
     if let Some(mask) = window.get_webview("mask") {
         mask.show().ok();
-        evaluate(&mask, obtain(crate::core::url::Type::Mask).unwrap_or("")).ok();
+        evaluate(&mask, &obtain(crate::core::url::Type::Mask).unwrap_or_default()).ok();
         std::thread::sleep(std::time::Duration::from_millis(750));
     } else {
         error!("未找到遮罩Webview，无法执行关闭动画");

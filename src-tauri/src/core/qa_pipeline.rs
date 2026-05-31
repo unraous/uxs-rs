@@ -36,30 +36,24 @@ mod tests {
 
     #[tokio::test]
     async fn test_solve_html_integration() {
-        // 1. 初始化环境变量并仅在内存中加载 API Key
         dotenv::dotenv().ok();
         let api_key = std::env::var("BIGMODEL_API_KEY")
             .expect("请在 .env 文件或环境变量中设置 BIGMODEL_API_KEY");
 
-        // 2. 读取网页样本 html
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("tests/assets/course-page/webpage.html");
         let html_content = fs::read_to_string(&path)
             .unwrap_or_else(|_| panic!("Failed to find test webpage.html at {:?}", path));
 
-        // 3. 执行纯无状态的解析与字形 OCR 解密
         let raw = QuestionsRaw::new(&html_content).expect("Failed to parse HTML questions");
         let decrypted = decrypt(raw);
         assert!(!decrypted.is_empty(), "解密后的题目列表不应为空");
 
-        // 4. 直接在内存中初始化局部变量，完全不碰磁盘上的 config.toml
         let local_solver = BigModelConfig {
             api_key,
-            chosen_model: "glm-4-flash".to_string(), // 默认使用快速免费模型
             ..Default::default()
         };
 
-        // 5. 局部的无状态求解器调用并验证
         println!("正在使用内存局部配置变量调用 BigModel 求解器...");
         match local_solver.solve(decrypted).await {
             Ok(answers) => {

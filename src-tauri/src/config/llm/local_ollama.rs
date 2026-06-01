@@ -9,7 +9,7 @@ struct OllamaResponse {
     models: Vec<OllamaModelItem>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct LocalOllamaConfig {
     pub models: Vec<String>,
     pub chosen_model: String,

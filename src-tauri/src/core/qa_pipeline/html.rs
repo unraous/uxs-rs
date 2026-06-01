@@ -51,15 +51,15 @@ fn select_options(elem: &scraper::element_ref::ElementRef) -> Vec<String> {
         .unwrap_or_default()
 }
 
+fn select_text(elem: &scraper::element_ref::ElementRef, selector: &str) -> Option<String> {
+    Selector::parse(selector)
+        .ok()
+        .and_then(|sel| elem.select(&sel).next())
+        .map(|e| trim(&e.text().collect::<String>()))
+}
+
 fn extract_questions(html: &str) -> Vec<Question> {
     let document = Html::parse_document(html);
-    
-    let select_text = |elem: &scraper::element_ref::ElementRef, selector: &str| {
-        Selector::parse(selector)
-            .ok()
-            .and_then(|sel| elem.select(&sel).next())
-            .map(|e| trim(&e.text().collect::<String>()))
-    };
 
     document
         .select(&Selector::parse("div.TiMu.newTiMu").unwrap())
@@ -77,10 +77,13 @@ fn extract_questions(html: &str) -> Vec<Question> {
 
 impl QuestionsRaw {
     pub fn new(html: &str) -> Result<Self> {
-        Ok(Self {
-            questions: extract_questions(html),
-            font: extract_font(html),
-        })
+        let font = extract_font(html);
+        let questions = extract_questions(html);
+        if questions.is_empty() {
+            anyhow::bail!("NoQuestionsFound")
+        } else {
+            Ok(Self { questions, font })
+        }
     }
 }
 
@@ -103,6 +106,8 @@ mod tests {
         let actual_ttf = raw.font.as_ref().expect("No font extracted from HTML");
         assert_eq!(expected_ttf, actual_ttf.as_slice(), "Extracted font bytes differ from cxs-font.ttf");      
 
+        let blank = QuestionsRaw::new("");
+        assert!(blank.is_err(), "Empty HTML should return an error");
     }
 }
 

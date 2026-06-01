@@ -3,30 +3,19 @@ use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 use crate::core::qa_pipeline::html::Question;
 use crate::config::llm::deepseek::DeepSeekConfig;
 
+use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for DeepSeekConfig {
-    fn set_key(&mut self, key: &str) {
-        self.api_key = key.to_string();
+    fn set_key(&self, key: &str) {
+        *self.api_key.lock() = key.to_string();
         log::info!("DeepSeek API key 已更新");
     }
 
 
-    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
-        // 参数验证
-        if self.api_key.is_empty() {
-            log::error!("Deepseek API key 未配置");
-            return Err("DeepSeek API key is empty".into());
-        }
-        if question.is_empty() {
-            log::warn!("接收到空的题目列表，将返回空答案数组");
-            return Ok(Vec::new());
-        }
-
-        if self.chosen_model.is_empty() {
-            return Err("No DeepSeek model selected".into());
-        }
+    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
+        log::debug!("将使用 DeepSeek 模型 {} 进行推理", self.chosen_model);
 
         let request_body = serde_json::json!({
             "model": self.chosen_model,
@@ -47,11 +36,9 @@ impl LLM for DeepSeekConfig {
             }
         });
 
-        // 发送 HTTP 请求
-        let client = reqwest::Client::new();
-        let response = client
+        let response = reqwest::Client::new()
             .post("https://api.deepseek.com/chat/completions")
-            .header("Authorization", format!("Bearer {}", self.api_key))
+            .header("Authorization", format!("Bearer {}", self.api_key.lock()))
             .header("Content-Type", "application/json")
             .json(&request_body)
             .send()
@@ -59,14 +46,10 @@ impl LLM for DeepSeekConfig {
 
         // 解析响应
         let data: serde_json::Value = response.json().await?;
-
-        if let Some(content) = data["choices"][0]["message"]["content"].as_str() {
-            // 解析 LLM 返回的 JSON 答案数组
-            let answers = serde_json::from_str::<Vec<AnswerItem>>(content)?;
-            Ok(answers)
-        } else {
-            Err("No valid content in DeepSeek response".into())
-        }
+        let content = data.pointer("/choices/0/message/content")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow::anyhow!("无法从 DeepSeek 响应提取文本。原始响应: {}", data))?;
+        Ok(serde_json::from_str(content)?)
     }
 }
 
@@ -97,7 +80,7 @@ mod tests {
             .expect("请在 .env 文件或环境变量中设置 DEEPSEEK_API_KEY");
 
 
-        let config = DeepSeekConfig { api_key, ..Default::default() };
+        let config = DeepSeekConfig { api_key: parking_lot::Mutex::new(api_key), ..Default::default() };
 
         match config.solve(questions.clone()).await {
             Ok(answers) => {

@@ -6,22 +6,29 @@ pub mod llm;
 
 use html::QuestionsRaw;
 use mapper::decrypt;
-use llm::AnswerItem;
+use llm::{AnswerItem, LLM};
+
 use crate::config::CONFIG;
+use crate::config::llm::LLMProvider;
+
+use anyhow::Result;
+
 
 /// A completely stateless, asynchronous function that takes raw HTML content,
 /// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
 /// solves them via the active LLM configured in CONFIG, and returns the solved AnswerItems.
-pub async fn solve_html(html: &str) -> Result<Vec<AnswerItem>, String> {
+pub async fn execute_qa_workflow(html: &str) -> Result<Vec<AnswerItem>> {
     // 1. Parse raw HTML and extract the scrambled TTF font and questions
-    let raw = QuestionsRaw::new(html).map_err(|e| e.to_string())?;
-    
-    // 2. Decrypt dynamic font obfuscation using the preloaded CRNN ONNX model
-    let decrypted = decrypt(raw);
-    
-    // 3. Load the active LLM provider configured in CONFIG and solve the decrypted questions
-    let llm_provider = CONFIG.llm.llm();
-    let answers = llm_provider.solve(decrypted).await.map_err(|e| e.to_string())?;
+    let decrypted = decrypt(QuestionsRaw::new(html)?);
+    let answers = match CONFIG.llm.provider {
+        LLMProvider::BigModel => CONFIG.llm.bigmodel.solve(decrypted).await?,
+        LLMProvider::DeepSeek => CONFIG.llm.deepseek.solve(decrypted).await?,
+        LLMProvider::Google => CONFIG.llm.google.solve(decrypted).await?,
+        LLMProvider::Moonshot => CONFIG.llm.moonshot.solve(decrypted).await?,
+        LLMProvider::OpenAI => CONFIG.llm.openai.solve(decrypted).await?,
+        LLMProvider::Openrouter => CONFIG.llm.openrouter.solve(decrypted).await?,
+        LLMProvider::LocalOllama => CONFIG.llm.local_ollama.solve(decrypted).await?,
+    };
     
     Ok(answers)
 }
@@ -50,7 +57,7 @@ mod tests {
         assert!(!decrypted.is_empty(), "解密后的题目列表不应为空");
 
         let local_solver = BigModelConfig {
-            api_key,
+            api_key: parking_lot::Mutex::new(api_key),
             ..Default::default()
         };
 

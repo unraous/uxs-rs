@@ -41,7 +41,7 @@ pub fn decrypt(questions: QuestionsRaw) -> Vec<Question> {
             }
         }).collect()
     } else {
-        log::debug!("未检测到加密字体，跳过解密步骤");
+        log::info!("未检测到加密字体，跳过解密步骤");
         questions.questions
     }
 }

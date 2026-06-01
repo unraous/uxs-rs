@@ -12,7 +12,7 @@ use llm::LLMConfig;
 use serde::{Serialize, Deserialize};
 use once_cell::sync::Lazy;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Config {
     pub metadata: MetadataConfig,
     pub paths: PathsConfig,

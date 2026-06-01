@@ -6,7 +6,7 @@ use std::io::Error;
 use log::error;
 
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PathsConfig {
     pub dirs: HashMap<String, PathBuf>,
     pub files: HashMap<String, PathBuf>,

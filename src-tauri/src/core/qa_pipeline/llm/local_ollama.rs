@@ -3,27 +3,18 @@ use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 use crate::core::qa_pipeline::html::Question;
 use crate::config::llm::local_ollama::LocalOllamaConfig;
 
+use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for LocalOllamaConfig {
-    fn set_key(&mut self, _key: &str) {
+    fn set_key(&self, _key: &str) {
         log::warn!("LocalOllama 不需要 API Key，此处不执行任何操作");
     }
-    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
-        if question.is_empty() {
-            log::warn!("接收到空的题目列表，将返回空答案数组");
-            return Ok(Vec::new());
-        }
 
-        if self.models.is_empty() {
-            log::error!("没有可用的 LocalOllama 模型，请先加载模型");
-            return Err("No LocalOllama model selected".into());
-        }
-
+    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 LocalOllama 模型 {} 进行推理", self.chosen_model);
 
-        // 1. 修正：添加 "stream": false
         let request_body = serde_json::json!({
             "model": self.chosen_model,
             "messages": [
@@ -39,30 +30,23 @@ impl LLM for LocalOllamaConfig {
             "stream": false 
         });
 
-        // 发送 HTTP 请求
-        let client = reqwest::Client::new();
-        let response = client
+        let response = reqwest::Client::new()
             .post("http://localhost:11434/api/chat")
             .json(&request_body)
             .send()
             .await?;
 
-        // 检查 HTTP 状态码
         if !response.status().is_success() {
-            return Err(format!("Ollama API error: {}", response.status()).into());
+            anyhow::bail!("Ollama API error: {}", response.status());
         }
 
         // 解析响应
         let data: serde_json::Value = response.json().await?;
+        let content = data.pointer("/message/content")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow::anyhow!("无法从 Ollama 响应提取文本。原始响应: {}", data))?;
 
-        // 2. 修正：调整为 Ollama 的 JSON 路径匹配方式
-        if let Some(content) = data["message"]["content"].as_str() {
-            // 解析 LLM 返回的 JSON 答案数组
-            let answers = serde_json::from_str::<Vec<AnswerItem>>(content)?;
-            Ok(answers)
-        } else {
-            Err("No valid content in Ollama response".into())
-        }
+        Ok(serde_json::from_str(content)?)
     }
 }
 

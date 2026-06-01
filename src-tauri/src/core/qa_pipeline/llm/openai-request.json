@@ -1,0 +1,24 @@
+{
+  "instructions": "",
+  "input": "",
+  "text": {
+    "format": {
+      "type": "json_schema",
+      "name": "answer_lists",
+      "schema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "题号": { "type": "string" },
+            "解析": { "type": "string" },
+            "答案": { "type": "string" }
+          },
+          "required": ["题号", "解析", "答案"],
+          "additionalProperties": false
+        }
+      },
+      "strict": true
+    }
+  }
+}

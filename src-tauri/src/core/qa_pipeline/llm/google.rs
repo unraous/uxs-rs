@@ -3,62 +3,54 @@ use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 use crate::core::qa_pipeline::html::Question;
 use crate::config::llm::google::GoogleConfig;
 
+use anyhow::Result;
 use async_trait::async_trait;
+use serde_json::json;
 
 #[async_trait]
 impl LLM for GoogleConfig {
-    fn set_key(&mut self, key: &str) {
-        self.api_key = key.to_string();
+    fn set_key(&self, key: &str) {
+        *self.api_key.lock() = key.to_string();
         log::info!("Google API key 已更新");
     }
 
-    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>, Box<dyn std::error::Error>> {
-        // 参数验证
-        if self.api_key.is_empty() {
-            log::error!("Google API key 未配置");
-            return Err("Google API key is empty".into());
-        }
-        if question.is_empty() {
-            log::warn!("接收到空的题目列表，将返回空答案数组");
-            return Ok(Vec::new());
-        }
-
-        if self.chosen_model.is_empty() {
-            return Err("No Google model selected".into());
-        }
-
+    async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
+        log::debug!("将使用 Google 模型 {} 进行推理", self.chosen_model);
         // see reference: https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
         // the mimeType is not string but enum, so need to use ""APPLICATION_JSON"" instead of "application/json"
-        let mut request_body: serde_json::Value = serde_json::from_str(
-            include_str!("./google-request.json")
-        )?;
+        let mut body: serde_json::Value = serde_json::from_str(include_str!("./google-request.json"))?;
+        body["contents"] = json!([{
+            "parts": [{ "text": serde_json::to_string(&question)? }]
+        }]);
+        body["systemInstruction"] = json!({
+            "parts": [{ "text": SYSTEM_PROMPT }]
+        });
 
-        // 2. 动态注入变量 (直接通过路径赋值)
-        request_body["systemInstruction"]["parts"][0]["text"] = serde_json::json!(SYSTEM_PROMPT);
-        request_body["contents"][0]["parts"][0]["text"] = serde_json::json!(serde_json::to_string(&question)?);        
-
-        // 3. 发送请求
-        let client = reqwest::Client::new();
-        let response = client
+        let response = reqwest::Client::new()
             .post(format!(
                 "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
                 self.chosen_model
             ))
-            .header("x-goog-api-key", &self.api_key)
+            .header("x-goog-api-key", format!("{}", self.api_key.lock()))
             .header("Content-Type", "application/json")
-            .json(&request_body)
+            .json(&body)
             .send()
             .await?;
 
-        // 解析响应
+        if !response.status().is_success() {
+            anyhow::bail!(
+                "Google API 错误 ({}): {}", 
+                response.status().as_str(), 
+                response.text().await?
+            )
+        }
+
         let data: serde_json::Value = response.json().await?;
+        let content = data.pointer("/candidates/0/content/parts/0/text")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| anyhow::anyhow!("无法从 Google 响应提取文本。原始响应: {}", data))?;
 
-        let content = data["candidates"][0]["content"]["parts"][0]["text"]
-            .as_str()
-            .ok_or_else(|| format!("No valid content in Google response: {}", data))?;
-
-        let answers = serde_json::from_str::<Vec<AnswerItem>>(content)?;
-        Ok(answers)
+        Ok(serde_json::from_str::<Vec<AnswerItem>>(content)?)
     }
 }
 
@@ -89,7 +81,7 @@ mod tests {
             .expect("请在 .env 文件或环境变量中设置 GOOGLE_API_KEY");
 
 
-        let config = GoogleConfig { api_key, ..Default::default() };
+        let config = GoogleConfig { api_key: parking_lot::Mutex::new(api_key), ..Default::default() };
 
         match config.solve(questions.clone()).await {
             Ok(answers) => {

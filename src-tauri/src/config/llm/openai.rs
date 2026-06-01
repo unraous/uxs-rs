@@ -1,8 +1,9 @@
+use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct OpenAIConfig {
-    pub api_key: String,
+    pub api_key: Mutex<String>,
     pub models: Vec<String>,
     pub chosen_model: String,
 }
@@ -10,7 +11,7 @@ pub struct OpenAIConfig {
 impl Default for OpenAIConfig {
     fn default() -> Self {
         Self {
-            api_key: String::new(),
+            api_key: Mutex::new(String::new()),
             models: vec![
                 String::from("gpt-5-nano"),
                 String::from("gpt-5"),

@@ -8,11 +8,11 @@ use log::info;
 pub fn init() -> Result<(), fern::InitError> {
     CONFIG.paths.ensure()?;
 
-    let timestamp = Local::now().format("%Y-%m-%d_%H-%M-%S");
-    let log_file = CONFIG.paths.dirs["logs"].join(format!("{}.log", timestamp));
+    let log_file = CONFIG.paths.dirs["logs"].join(
+        format!("{}.log", Local::now().format("%Y-%m-%d_%H-%M-%S"))
+    );
 
     Dispatch::new()
-        // 配置格式
         .format(|out, message, record| {
             out.finish(format_args!(
                 "[{} {} {}] {}",
@@ -22,13 +22,10 @@ pub fn init() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        // 文件输出
-        .chain(fern::log_file(&log_file)?)
-        // 控制台输出
+        .chain(fern::log_file(&log_file)?) 
         .chain(std::io::stdout())
-        // 日志级别过滤
-        .level(CONFIG.metadata.log_level)
-        // 应用
+        .level(log::LevelFilter::Info)
+        .level_for("uxs_lib", CONFIG.metadata.log_level)
         .apply()?;
 
     info!("日志系统初始化成功，日志文件路径: {}", log_file.display());

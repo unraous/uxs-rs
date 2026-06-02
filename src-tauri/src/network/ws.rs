@@ -124,7 +124,7 @@ mod tests {
     use tokio_tungstenite::connect_async;
     use std::time::Duration;
     use dotenv::dotenv;
-    use crate::{config::CONFIG, core::qa_pipeline::llm::LLM};
+    use crate::config::CONFIG;
 
     #[tokio::test]
     async fn test_mock_frontend_flow() {
@@ -148,7 +148,7 @@ mod tests {
     
         let api_key = std::env::var("BIGMODEL_API_KEY")
             .expect("请在 .env 中设置 BIGMODEL_API_KEY");
-        CONFIG.llm.bigmodel.set_key(&api_key);
+        CONFIG.llm.current().set_key(&api_key);
 
         let html_path = "tests/assets/course-page/webpage.html";
         let html_content = std::fs::read_to_string(html_path)

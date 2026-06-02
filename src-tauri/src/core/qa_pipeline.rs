@@ -6,10 +6,9 @@ pub mod llm;
 
 use html::QuestionsRaw;
 use mapper::decrypt;
-use llm::{AnswerItem, LLM};
+use llm::AnswerItem;
 
 use crate::config::CONFIG;
-use crate::config::llm::LLMProvider;
 
 use anyhow::Result;
 
@@ -18,19 +17,9 @@ use anyhow::Result;
 /// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
 /// solves them via the active LLM configured in CONFIG, and returns the solved AnswerItems.
 pub async fn execute_qa_workflow(html: &str) -> Result<Vec<AnswerItem>> {
-    // 1. Parse raw HTML and extract the scrambled TTF font and questions
     let decrypted = decrypt(QuestionsRaw::new(html)?);
-    let response = match *CONFIG.llm.provider.lock() {
-        LLMProvider::BigModel => CONFIG.llm.bigmodel.solve(decrypted),
-        LLMProvider::DeepSeek => CONFIG.llm.deepseek.solve(decrypted),
-        LLMProvider::Google => CONFIG.llm.google.solve(decrypted),
-        LLMProvider::Moonshot => CONFIG.llm.moonshot.solve(decrypted),
-        LLMProvider::OpenAI => CONFIG.llm.openai.solve(decrypted),
-        LLMProvider::Openrouter => CONFIG.llm.openrouter.solve(decrypted),
-        LLMProvider::Ollama => CONFIG.llm.ollama.solve(decrypted),
-    };
+    CONFIG.llm.current().solve(decrypted).await
     
-    response.await
 }
 
 #[cfg(test)]

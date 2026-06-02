@@ -30,16 +30,18 @@ impl WSRequest {
 async fn on_event(event: WSRequest, tx: mpsc::UnboundedSender<String>) {
     match event {
         WSRequest::SolveQuestions { html } => {
-            log::debug!("开始处理 HTML 答题，长度: {}", html.len());
+            log::info!("开始处理 HTML 答题，长度: {}", html.len());
 
             match execute_qa_workflow(&html).await {
                 Ok(answers) => {
+                    log::info!("HTML 答题处理成功, 答案数量: {}", answers.len());    
                     let resp = WSResponse::Success { 
                         answer: serde_json::to_string(&answers).unwrap_or_default() 
                     };
                     let _ = tx.send(serde_json::to_string(&resp).unwrap());
                 }
                 Err(e) => {
+                    log::error!("处理 HTML 答题时发生错误: {}", e);
                     let resp = WSResponse::Error { code: 500, message: e.to_string() };
                     let _ = tx.send(serde_json::to_string(&resp).unwrap());
                 }
@@ -51,6 +53,7 @@ async fn on_event(event: WSRequest, tx: mpsc::UnboundedSender<String>) {
 async fn on_message(msg: Message, tx: mpsc::UnboundedSender<String>) {
     if let Message::Text(text) = msg {
         if let Ok(event) = WSRequest::from_json(&text) {
+            log::debug!("收到 WebSocket 消息: {:?}", event);
             on_event(event, tx).await;
         }
     }

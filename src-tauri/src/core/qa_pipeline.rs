@@ -20,17 +20,17 @@ use anyhow::Result;
 pub async fn execute_qa_workflow(html: &str) -> Result<Vec<AnswerItem>> {
     // 1. Parse raw HTML and extract the scrambled TTF font and questions
     let decrypted = decrypt(QuestionsRaw::new(html)?);
-    let answers = match CONFIG.llm.provider {
-        LLMProvider::BigModel => CONFIG.llm.bigmodel.solve(decrypted).await?,
-        LLMProvider::DeepSeek => CONFIG.llm.deepseek.solve(decrypted).await?,
-        LLMProvider::Google => CONFIG.llm.google.solve(decrypted).await?,
-        LLMProvider::Moonshot => CONFIG.llm.moonshot.solve(decrypted).await?,
-        LLMProvider::OpenAI => CONFIG.llm.openai.solve(decrypted).await?,
-        LLMProvider::Openrouter => CONFIG.llm.openrouter.solve(decrypted).await?,
-        LLMProvider::LocalOllama => CONFIG.llm.local_ollama.solve(decrypted).await?,
+    let response = match *CONFIG.llm.provider.lock() {
+        LLMProvider::BigModel => CONFIG.llm.bigmodel.solve(decrypted),
+        LLMProvider::DeepSeek => CONFIG.llm.deepseek.solve(decrypted),
+        LLMProvider::Google => CONFIG.llm.google.solve(decrypted),
+        LLMProvider::Moonshot => CONFIG.llm.moonshot.solve(decrypted),
+        LLMProvider::OpenAI => CONFIG.llm.openai.solve(decrypted),
+        LLMProvider::Openrouter => CONFIG.llm.openrouter.solve(decrypted),
+        LLMProvider::Ollama => CONFIG.llm.ollama.solve(decrypted),
     };
     
-    Ok(answers)
+    response.await
 }
 
 #[cfg(test)]

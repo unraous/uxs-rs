@@ -10,12 +10,12 @@ struct OllamaResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub struct LocalOllamaConfig {
+pub struct OllamaConfig {
     pub models: Vec<String>,
     pub chosen_model: String,
 }
 
-impl LocalOllamaConfig {
+impl OllamaConfig {
     async fn fetch_models_from(&mut self, url: &str) -> Result<(), reqwest::Error> {
         let data = reqwest::get(url).await?.json::<OllamaResponse>().await?;
 
@@ -48,14 +48,14 @@ mod tests {
 
     #[tokio::test]
     async fn test_local_ollama_normal() {
-        let mut config = LocalOllamaConfig::default();
+        let mut config = OllamaConfig::default();
         config.load_models().await;
         println!("Fetched models: {:?}", config.models);
     }
 
     #[tokio::test]
     async fn test_local_ollama_offline() {
-        let mut config = LocalOllamaConfig {
+        let mut config = OllamaConfig {
             models: vec!["dummy-model".to_string()],
             chosen_model: "dummy-model".to_string(),
         };

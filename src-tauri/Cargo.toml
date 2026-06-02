@@ -47,4 +47,5 @@ async-trait = "0.1.89"
 reqwest = { version = "0.13.4", features = ["json"] }
 dotenv = "0.15.0"
 parking_lot = { version = "0.12.5", features = ["serde"] }
+strum = { version = "0.28.0", features = ["derive"] }
 

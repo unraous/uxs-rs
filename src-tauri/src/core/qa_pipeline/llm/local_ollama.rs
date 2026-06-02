@@ -1,19 +1,19 @@
 use super::{AnswerItem, SYSTEM_PROMPT, LLM};
 
 use crate::core::qa_pipeline::html::Question;
-use crate::config::llm::local_ollama::LocalOllamaConfig;
+use crate::config::llm::ollama::OllamaConfig;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
-impl LLM for LocalOllamaConfig {
+impl LLM for OllamaConfig {
     fn set_key(&self, _key: &str) {
-        log::warn!("LocalOllama 不需要 API Key，此处不执行任何操作");
+        log::warn!("Ollama 不需要 API Key，此处不执行任何操作");
     }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
-        log::debug!("将使用 LocalOllama 模型 {} 进行推理", self.chosen_model);
+        log::debug!("将使用 Ollama 本地模型 {} 进行推理", self.chosen_model);
 
         let request_body = serde_json::json!({
             "model": self.chosen_model,
@@ -70,7 +70,7 @@ mod tests {
 
         println!("成功加载了 {} 道题目", questions.len());
 
-        let mut config = LocalOllamaConfig::default();
+        let mut config = OllamaConfig::default();
         config.load_models().await;
         match config.solve(questions.clone()).await {
             Ok(answers) => {

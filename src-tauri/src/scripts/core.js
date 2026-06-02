@@ -14,9 +14,9 @@
  * - 欢迎Issue反馈bug或建议，但请一定一定给出详细信息
  * 
  * 使用说明：
- * 1. 仅在学习通平台页面使用，具体用法参见README.md。
- * 2. 启动脚本后，需手动点击页面以激活脚本。
- * 3. 如需停止，刷新页面即可。
+ * 1. 仅在学习通平台页面使用，具体用法参见README.md.
+ * 2. 启动脚本后，需手动点击页面以激活脚本.
+ * 3. 如需停止，刷新页面即可.
  * 4. 请勿用于商业用途或违反相关法律法规。（这坨玩意有人商用？？？）
  * 
  * 作者：unraous
@@ -1244,10 +1244,10 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                             //confirm ('已提交测试题目，等待结果');
                                                             const configContent = document.getElementById('popcontent');
                                                             if (configContent && configContent.textContent.includes('未达到及格线')) {
-                                                                console.warn('检测到未及格，需重做！');
                                                                 configBtn.click();
                                                                 await timeSleep(DEFAULT_SLEEP_TIME);
-                                                                handleIframeLock = false; //
+                                                                console.warn('检测到未及格，需重做！');
+                                                                handleIframeLock = false; 
                                                                 await handleIframeChange(2); 
                                                                 return;
                                                             } else {
@@ -1267,42 +1267,34 @@ async function handleIframeChange(prama = DEFAULT_TEST_OPTION) {
                                                                 }
                                                                 
                                                             }
-                                                        } else if (globalThis._ws && globalThis._ws.readyState === 1) {
+                                                        } else if (globalThis._ws?.readyState === 1) {
                                                             console.info('已找到题目，开始传输');
                                                             const htmlStr = testDoc.documentElement.outerHTML;
                                                             if (answerTable) answerTable = [];
                                                             globalThis._ws.send(JSON.stringify({
-                                                                type: 'testDocHtml',
-                                                                html: htmlStr
+                                                                event: 'SolveQuestions',
+                                                                data: { html: htmlStr }
                                                             }));
                                                             await new Promise(resolve => {
                                                                 function onMessage(event) {
-                                                                    try {
-                                                                        // 判断是否收到的是答案json（一般不是"收到"而是json字符串）
-                                                                        let answerJson;
-                                                                        try {
-                                                                            answerJson = JSON.parse(event.data);
-                                                                        } catch (e) {
-                                                                            // 不是json就忽略
-                                                                            if (event.data === '收到') {
-                                                                                globalThis._ws.removeEventListener('message', onMessage);
-                                                                                console.info('收到服务端回信，继续后续流程');
-                                                                                resolve();
-                                                                            }
-                                                                            return;
-                                                                        }
-                                                                        // 如果能解析为json，自动填答
-                                                                        autoFillAnswers(testList, answerJson);
+                                                                    const response = JSON.parse(event.data);
+                                                                   
+                                                                    // 根据 WSResponse 协议判断
+                                                                    if (response.status === 'Success') {
+                                                                        // response.data.answer 是后端序列化后的答案 JSON 字符串，需要再次解析
+                                                                        const answerList = JSON.parse(response.data.answer);
+                                                                        autoFillAnswers(testList, answerList);
                                                                         globalThis._ws.removeEventListener('message', onMessage);
                                                                         console.info('已自动填充答案');
                                                                         resolve();
-                                                                    } catch (e) {
-                                                                        console.warn('处理回信时出错', e);
+                                                                    } else if (response.status === 'Error') {
+                                                                        console.warn(`服务端处理异常: [${response.data.code}] ${response.data.message}`);
+                                                                        globalThis._ws.removeEventListener('message', onMessage);
+                                                                        resolve(); // 报错也 resolve 掉，避免流程卡死
                                                                     }
                                                                 }
                                                                 globalThis._ws.addEventListener('message', onMessage);
                                                             });
-                                                            //confirm('已创建答案，准备提交');
                                                             submitBtn.click();
                                                             await timeSleep(DEFAULT_SLEEP_TIME);
                                                             const configElement = document.getElementById('workpop');

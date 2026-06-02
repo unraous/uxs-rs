@@ -8,10 +8,8 @@ use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for MoonshotConfig {
-    fn set_key(&self, key: &str) {
-        *self.api_key.lock() = key.to_string();
-        log::info!("Moonshot API key 已更新");
-    }
+    fn set_key(&self, key: &str) { *self.api_key.lock() = key.to_string(); }
+    fn available_models(&self) -> Vec<String> { self.models.clone() }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 Moonshot 模型 {} 进行推理", self.chosen_model);

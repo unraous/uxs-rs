@@ -27,6 +27,8 @@ pub struct AnswerItem {
 #[async_trait]
 pub trait LLM {
     fn set_key(&self, key: &str);
+    fn available_models(&self) -> Vec<String>;
+
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>>;
 }
 

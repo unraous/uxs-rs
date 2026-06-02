@@ -9,10 +9,8 @@ use serde_json::json;
 
 #[async_trait]
 impl LLM for GoogleConfig {
-    fn set_key(&self, key: &str) {
-        *self.api_key.lock() = key.to_string();
-        log::info!("Google API key 已更新");
-    }
+    fn set_key(&self, key: &str) { *self.api_key.lock() = key.to_string(); }
+    fn available_models(&self) -> Vec<String> { self.models.clone() }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 Google 模型 {} 进行推理", self.chosen_model);

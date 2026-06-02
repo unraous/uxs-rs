@@ -2,6 +2,8 @@ use crate::config::CONFIG;
 use crate::config::llm::LLMProvider;
 use crate::core::qa_pipeline::llm::LLM;
 
+use anyhow::Result;
+
 // Get application metadata such as version and author information.
 #[tauri::command]
 pub fn metadata(key: String) -> String {
@@ -16,33 +18,17 @@ pub fn metadata(key: String) -> String {
 }
 
 #[tauri::command]
-pub fn switch_provider(provider: String) {
-    log::debug!("正在切换 LLM 提供商到 [{}]", provider);
-    match provider.as_str() {
-        "BigModel" => *CONFIG.llm.provider.lock() = LLMProvider::BigModel,
-        "DeepSeek" => *CONFIG.llm.provider.lock() = LLMProvider::DeepSeek,
-        "Google" => *CONFIG.llm.provider.lock() = LLMProvider::Google,
-        "Moonshot" => *CONFIG.llm.provider.lock() = LLMProvider::Moonshot,
-        "Ollama" => *CONFIG.llm.provider.lock() = LLMProvider::Ollama,
-        "OpenAI" => *CONFIG.llm.provider.lock() = LLMProvider::OpenAI,
-        "Openrouter" => *CONFIG.llm.provider.lock() = LLMProvider::Openrouter,
-        _ => log::warn!("未知的 LLM 提供商: [{}]", provider),
-    }
-    log::debug!("成功切换 LLM 提供商到 [{}]", provider);
+pub fn switch_provider(provider: String) -> Result<()> {
+    log::debug!("正在切换 AI Provider 到 [{}]", provider);
+    CONFIG.llm.switch_to(provider.parse::<LLMProvider>()?);
+    log::debug!("成功切换 AI Provider 到 [{}]", provider);
+    Ok(())
 }
 
 #[tauri::command]
 pub fn models() -> Vec<String> {
     log::debug!("正在获取可用模型列表...");
-    let models = match *CONFIG.llm.provider.lock() {
-        LLMProvider::BigModel => CONFIG.llm.bigmodel.models.clone(),
-        LLMProvider::DeepSeek => CONFIG.llm.deepseek.models.clone(),
-        LLMProvider::Google => CONFIG.llm.google.models.clone(),
-        LLMProvider::Ollama => CONFIG.llm.ollama.models.clone(),
-        LLMProvider::Moonshot => CONFIG.llm.moonshot.models.clone(),
-        LLMProvider::OpenAI => CONFIG.llm.openai.models.clone(),
-        LLMProvider::Openrouter => CONFIG.llm.openrouter.models.clone(),
-    };
+    let models = CONFIG.llm.current().available_models();
     log::debug!("成功获取模型列表: {:?}", models);
     models
 }

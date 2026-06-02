@@ -8,9 +8,8 @@ use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for OllamaConfig {
-    fn set_key(&self, _key: &str) {
-        log::warn!("Ollama 不需要 API Key，此处不执行任何操作");
-    }
+    fn set_key(&self, _key: &str) { log::warn!("Ollama 无 API Key 可设置") }
+    fn available_models(&self) -> Vec<String> { self.models.clone() }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 Ollama 本地模型 {} 进行推理", self.chosen_model);

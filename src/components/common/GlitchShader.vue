@@ -1,3 +1,7 @@
+<!-- 
+A Experimental Effect,
+Tempoparily declared.
+
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
 import * as THREE from 'three';
@@ -247,4 +251,4 @@ onUnmounted(() => {
   overflow: hidden;
   background-color: #000;
 }
-</style>
+</style> -->

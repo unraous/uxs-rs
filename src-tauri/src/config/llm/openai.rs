@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct OpenAIConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,
-    pub chosen_model: String,
+    pub chosen_model: Mutex<String>,
 }
 
 impl Default for OpenAIConfig {
@@ -18,7 +18,7 @@ impl Default for OpenAIConfig {
                 String::from("gpt-5.4-mini"),
                 String::from("gpt-5.4"),
             ],
-            chosen_model: String::from("gpt-5"),
+            chosen_model: Mutex::new(String::from("gpt-5")),
         }
     }
 }

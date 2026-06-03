@@ -11,9 +11,10 @@ use serde_json::json;
 impl LLM for GoogleConfig {
     fn set_key(&self, key: &str) { *self.api_key.lock() = key.to_string(); }
     fn available_models(&self) -> Vec<String> { self.models.clone() }
+    fn switch_model(&self, model: &str) { *self.chosen_model.lock() = model.to_string(); }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
-        log::debug!("将使用 Google 模型 {} 进行推理", self.chosen_model);
+        log::debug!("将使用 Google 模型 {} 进行推理", *self.chosen_model.lock());
         // see reference: https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
         // the mimeType is not string but enum, so need to use ""APPLICATION_JSON"" instead of "application/json"
         let mut body: serde_json::Value = serde_json::from_str(include_str!("./google-request.json"))?;
@@ -27,7 +28,7 @@ impl LLM for GoogleConfig {
         let response = reqwest::Client::new()
             .post(format!(
                 "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
-                self.chosen_model
+                *self.chosen_model.lock()
             ))
             .header("x-goog-api-key", format!("{}", self.api_key.lock()))
             .header("Content-Type", "application/json")

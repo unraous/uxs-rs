@@ -1,11 +1,7 @@
 {
-  "systemInstruction": {
-    "parts": [ { "text": "" } ]
-  },
-  "contents": [
-    {
-      "parts": [ { "text": "" } ]
-    }
+  "systemInstruction": { "parts": [ { "text": "" } ] },
+  "contents": [ 
+    { "parts": [ { "text": "" } ] }
   ],
   "generationConfig": {
     "responseFormat": {

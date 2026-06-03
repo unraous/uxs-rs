@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct OpenrouterConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,
-    pub chosen_model: String,
+    pub chosen_model: Mutex<String>,
 }
 
 impl Default for OpenrouterConfig {
@@ -18,7 +18,7 @@ impl Default for OpenrouterConfig {
                 String::from("nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
                 String::from("google/gemma-4-31b-it:free"),
             ],
-            chosen_model: String::from("moonshotai/kimi-k2.6:free"),
+            chosen_model: Mutex::new(String::from("moonshotai/kimi-k2.6:free")),
         }
     }
 }

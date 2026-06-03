@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct BigModelConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,
-    pub chosen_model: String,
+    pub chosen_model: Mutex<String>,
 }
 
 impl Default for BigModelConfig {
@@ -19,7 +19,7 @@ impl Default for BigModelConfig {
                 String::from("glm-5-turbo"),
                 String::from("glm-5.1"),
             ],
-            chosen_model: String::from("glm-4.7-flash"),
+            chosen_model: Mutex::new(String::from("glm-4.7-flash")),
         }
     }
 }

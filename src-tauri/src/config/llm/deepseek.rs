@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct DeepSeekConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,
-    pub chosen_model: String,
+    pub chosen_model: Mutex<String>,
 }
 
 impl Default for DeepSeekConfig {
@@ -16,7 +16,7 @@ impl Default for DeepSeekConfig {
                 String::from("deepseek-v4-flash"),
                 String::from("deepseek-v4-pro"),
             ],
-            chosen_model: String::from("deepseek-v4-flash"),
+            chosen_model: Mutex::new(String::from("deepseek-v4-flash")),
         }
     }
 }

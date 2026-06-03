@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct GoogleConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,
-    pub chosen_model: String,
+    pub chosen_model: Mutex<String>,
 }
 
 impl Default for GoogleConfig {
@@ -21,7 +21,7 @@ impl Default for GoogleConfig {
                 String::from("gemini-pro-latest"),
                 String::from("gemma-4-31b-it")
             ],
-            chosen_model: String::from("gemini-3.1-flash-lite"),
+            chosen_model: Mutex::new(String::from("gemini-3.1-flash-lite")),
         }
     }
 }

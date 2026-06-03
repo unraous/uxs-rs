@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub struct MoonshotConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,
-    pub chosen_model: String,
+    pub chosen_model: Mutex<String>,
 }
 
 impl Default for MoonshotConfig {
@@ -17,7 +17,7 @@ impl Default for MoonshotConfig {
                 String::from("kimi-k2.6"),
                 String::from("kimi-k2.5"),
             ],
-            chosen_model: String::from("moonshot-v1-8k"),
+            chosen_model: Mutex::new(String::from("moonshot-v1-8k")),
         }
     }
 }

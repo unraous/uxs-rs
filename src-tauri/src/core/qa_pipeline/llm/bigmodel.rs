@@ -10,9 +10,10 @@ use async_trait::async_trait;
 impl LLM for BigModelConfig {
     fn set_key(&self, key: &str) { *self.api_key.lock() = key.to_string(); }
     fn available_models(&self) -> Vec<String> { self.models.clone() }
-    
+    fn switch_model(&self, model: &str) { *self.chosen_model.lock() = model.to_string(); }
+
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
-        log::debug!("将使用 BigModel 模型 {} 进行推理", self.chosen_model);
+        log::debug!("将使用 BigModel 模型 {} 进行推理", *self.chosen_model.lock());
         let request_body = serde_json::json!({
             "model": self.chosen_model,
             "messages": [

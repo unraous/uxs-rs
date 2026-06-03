@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MainLayout from './layouts/MainLayout.vue';
+import MainLayout from '@/layouts/TheMainLayout.vue';
 </script>
 
 <template>
@@ -38,4 +38,4 @@ import MainLayout from './layouts/MainLayout.vue';
   pointer-events: none;
   mix-blend-mode: screen;
 }
-</style>
+</style>

@@ -21,9 +21,9 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Paths mapping */
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"],
+      "@panels/*": ["./src/components/panels/*"],
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],

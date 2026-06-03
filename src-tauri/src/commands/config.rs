@@ -1,6 +1,5 @@
 use crate::config::CONFIG;
 use crate::config::llm::LLMProvider;
-use crate::core::qa_pipeline::llm::LLM;
 
 use anyhow::Result;
 
@@ -36,14 +35,13 @@ pub fn models() -> Vec<String> {
 #[tauri::command]
 pub fn set_key(key: String) {
     log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
-    match *CONFIG.llm.provider.lock() {
-        LLMProvider::BigModel => CONFIG.llm.bigmodel.set_key(&key),
-        LLMProvider::DeepSeek => CONFIG.llm.deepseek.set_key(&key),
-        LLMProvider::Google => CONFIG.llm.google.set_key(&key),
-        LLMProvider::Ollama => CONFIG.llm.ollama.set_key(&key),
-        LLMProvider::Moonshot => CONFIG.llm.moonshot.set_key(&key),
-        LLMProvider::OpenAI => CONFIG.llm.openai.set_key(&key),
-        LLMProvider::Openrouter => CONFIG.llm.openrouter.set_key(&key),
-    }
+    CONFIG.llm.current().set_key(&key);
     log::debug!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
+}
+
+#[tauri::command]
+pub fn switch_model(model: String) {
+    log::debug!("正在切换模型到 [{}]...", model);
+    CONFIG.llm.current().switch_model(&model);
+    log::debug!("成功切换模型到 [{}]", model);
 }

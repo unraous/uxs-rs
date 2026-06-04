@@ -1,11 +1,11 @@
 <script setup lang="ts">
-
+import TheSettingsPanel from '@/components/panels/TheSettingsPanel.vue';
 </script>
 
 <template>
   <div class="left-container">
     <div class="info-panel">this is in the info panel</div>
-    <div class="setting-panel">this is in the setting panel</div>
+    <TheSettingsPanel />
   </div>
 </template>
 
@@ -22,8 +22,5 @@
   background-color: cyan;
 }
 
-.setting-panel {
-  flex: 1;
-  background-color: lightgray;
-}
+
 </style>

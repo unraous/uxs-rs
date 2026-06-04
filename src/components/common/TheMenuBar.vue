@@ -11,7 +11,7 @@ const minimizeApp = () => {
     });
 };
 
-const closeApp = async () => {
+const closeApp = () => {
     invoke('close').catch(e => {
         console.error('关闭应用失败:', e);
     });

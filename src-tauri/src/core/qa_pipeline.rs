@@ -9,7 +9,6 @@ use mapper::decrypt;
 use llm::AnswerItem;
 
 use crate::config::CONFIG;
-
 use anyhow::Result;
 
 
@@ -54,12 +53,10 @@ mod tests {
         match local_solver.solve(decrypted).await {
             Ok(answers) => {
                 assert!(!answers.is_empty(), "返回的答案列表不应为空");
-                println!("\n================== 最终答题结果 (Final Answers) ==================");
                 for (i, item) in answers.iter().enumerate() {
                     println!("[{}] 题号: {}, 答案: {}", i + 1, item.id, item.answer);
                     println!("    解析: {}", item.explanation);
                 }
-                println!("=================================================================\n");
             }
             Err(e) => {
                 panic!("无状态局部求解器执行测试失败: {}", e);

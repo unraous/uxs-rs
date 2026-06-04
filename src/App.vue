@@ -13,8 +13,15 @@ import MainLayout from '@/layouts/TheMainLayout.vue';
   box-sizing: border-box;
 }
 
+@font-face {
+  font-family: 'DefaultFont';
+  src: url('@/assets/fonts/Mixture.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'DefaultFont', Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;

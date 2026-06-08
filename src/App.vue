@@ -35,14 +35,9 @@ import MainLayout from '@/layouts/TheMainLayout.vue';
   -webkit-text-size-adjust: 100%;
 }
 
-.glitch-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 9999;
-  pointer-events: none;
-  mix-blend-mode: screen;
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
 }
+
 </style>

@@ -14,12 +14,12 @@ import TheSettingsPanel from '@/components/panels/TheSettingsPanel.vue';
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: yellow;
+  background-color: transparent;
 }
 
 .info-panel {
   height: 40%;
-  background-color: cyan;
+  background-color: transparent;
 }
 
 

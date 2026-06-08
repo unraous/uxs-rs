@@ -1,6 +1,26 @@
+
+<script setup lang="ts">
+import { computed } from 'vue';
+
+const props = defineProps<{
+  modelValue: string;
+  placeholder?: string;
+  type?: string;
+  id?: string;
+}>();
+
+const emit = defineEmits(['update:modelValue']);
+const inputId = computed(() => props.id || `input-${Math.random().toString(36).slice(2, 9)}`);
+
+const onInput = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.value);
+};
+
+</script>
+
 <template>
   <div class="base-text-box">
-    <label v-if="label" :for="inputId" class="label">{{ label }}</label>
     <div class="input-container">
       <input
         :id="inputId" 
@@ -16,32 +36,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue';
-
-const props = defineProps<{
-  modelValue: string;
-  label?: string;
-  placeholder?: string;
-  type?: string;
-  id?: string;
-}>();
-
-const emit = defineEmits(['update:modelValue']);
-const inputId = computed(() => props.id || `input-${Math.random().toString(36).slice(2, 9)}`);
-
-const onInput = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  emit('update:modelValue', target.value);
-};
-</script>
-
 <style scoped>
 .base-text-box {
   --brand-color: #0d58a4;
   --contrast-border: color-mix(in srgb, var(--brand-color), black 30%);
   --base-thickness: 2px;    /* 初始 L 边框厚度 */
-  --lift-thickness: 8px;    /* 抬升后的阴影厚度 */
+  --lift-thickness: 5px;    /* 抬升后的阴影厚度 */
   
   display: flex;
   flex-direction: column;
@@ -49,20 +49,9 @@ const onInput = (event: Event) => {
   width: 100%;
 }
 
-.label {
-  color: var(--brand-color);
-  font-weight: 800;
-  font-size: 0.85rem;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
 .input-container {
   position: relative;
   width: 100%;
-  /* 为右侧和下方的阴影预留空间，防止容器尺寸抖动 */
-  padding-right: var(--lift-thickness);
-  padding-bottom: var(--lift-thickness);
 }
 
 .input-field {
@@ -106,12 +95,12 @@ const onInput = (event: Event) => {
   */
   --t: var(--base-thickness);
   clip-path: polygon(
-    calc(100% - var(--t)) 0,     /* 右侧内起点 (右上) */
-    100% var(--t),               /* 右侧外顶点 (斜切起点) */
-    100% 100%,                   /* 右下总外角 */
-    var(--t) 100%,               /* 下侧外顶点 (斜切终点) */
-    0 calc(100% - var(--t)),     /* 下侧内起点 (左下) */
-    calc(100% - var(--t)) calc(100% - var(--t)) /* 内拐角 */
+    calc(100% - var(--t)) 0,     
+    100% var(--t),               
+    100% 100%,                   
+    var(--t) 100%,               
+    0 calc(100% - var(--t)),     
+    calc(100% - var(--t)) calc(100% - var(--t)) 
   );
 
   transition: 
@@ -125,7 +114,6 @@ const onInput = (event: Event) => {
   --t: var(--lift-thickness);
   background: var(--contrast-border);
   /* 阴影外壳稍微向右下张开，配合输入框的左上移，形成完美抬升感 */
-  transform: translate(2px, 2px); 
 }
 
 .input-field:hover ~ .shadow-shell {

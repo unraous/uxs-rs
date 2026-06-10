@@ -50,8 +50,8 @@ const createRipple = (event: MouseEvent) => {
     
   --brand-color: #0d58a4; 
   --color-mid: var(--brand-color);
-  --color-dark: color-mix(in srgb, var(--brand-color), black 30%);
-  --color-light: color-mix(in srgb, var(--brand-color), white 60%);
+  --color-dark: color-mix(in srgb, var(--brand-color), black 25%);
+  --color-light: color-mix(in srgb, var(--brand-color), white 75%);
 
   --text-color: #e8dcc4;
 

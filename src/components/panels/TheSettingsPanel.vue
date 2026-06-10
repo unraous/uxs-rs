@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import BaseButton from '../common/BaseButton.vue';
-import BaseTextBox from '../common/BaseTextBox.vue';
+import BaseConfigInput from '../common/BaseConfigInput.vue';
+import BaseConfigRadio from '../common/BaseConfigRadio.vue';
 
 const userName = ref('');
+const isActivated = ref(false);
+
 </script>
 
 <template>
@@ -12,7 +15,8 @@ const userName = ref('');
     <p>这里是设置面板的内容。</p>
     <BaseButton>
     </BaseButton>
-    <BaseTextBox v-model="userName" label="用户名" />
+    <BaseConfigInput v-model="userName" label="用户名" />
+    <BaseConfigRadio v-model="isActivated" label="激活状态" />
   </div>
 </template>
 

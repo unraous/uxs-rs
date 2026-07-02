@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+const props = defineProps<{
+  label: string;
+}>();
+
 const ripples = ref<{ id: number; x: number; y: number; size: number }[]>([]);
 let rippleCount = 0;
 
@@ -16,7 +20,6 @@ const createRipple = (event: MouseEvent) => {
   const id = rippleCount++;
   ripples.value.push({ id, x, y, size });
 
-  // 3. 动画完成后自动清理 DOM (同步 CSS 的 0.6s)
   setTimeout(() => {
     ripples.value = ripples.value.filter(r => r.id !== id);
   }, 600);
@@ -27,7 +30,7 @@ const createRipple = (event: MouseEvent) => {
 <template>
   <button class="base-button" @mousedown="createRipple">
     <div class="content">
-      <slot><span class="text">Explore Coffee</span></slot>
+      <slot><span class="text">{{ props.label }}</span></slot>
     </div>
     
     <span 
@@ -80,12 +83,11 @@ const createRipple = (event: MouseEvent) => {
   overflow: hidden;
 }
 
-/* 涟漪圆样式 */
 .ripple {
   position: absolute;
-  background: rgba(255, 255, 255, 0.4); /* 白色半透明 */
+  background: rgba(255, 255, 255, 0.4); 
   border-radius: 50%;
-  pointer-events: none; /* 必须：确保不阻挡后续的 click 事件 */
+  pointer-events: none; 
   transform: scale(0);
   animation: ripple-animation 0.6s ease-out;
 }
@@ -103,10 +105,10 @@ const createRipple = (event: MouseEvent) => {
 
 .content {
   position: relative;
-  z-index: 1; /* 确保文字始终在白圆上方 */
+  z-index: 1; 
+  font-size: 1.25rem;
 }
 
-/* 交互效果 */
 .base-button:hover {
   filter: brightness(1.15);
   transform: scale(1.05);

@@ -127,7 +127,9 @@ onUnmounted(() => timer && clearTimeout(timer));
 .bowl-ring {
   position: absolute;
   inset: 0;
-  transition: transform var(--duration-ring) cubic-bezier(0.3, 1.4, 0.6, 1);
+  transition: 
+    transform var(--duration-ring) cubic-bezier(0.3, 1.4, 0.6, 1),
+    filter 0.25s ease;
   transform-origin: center;
   z-index: 2;
 }
@@ -144,15 +146,14 @@ onUnmounted(() => timer && clearTimeout(timer));
   position: absolute;
   width: var(--ball-size);
   height: var(--ball-size);
-  background-color: var(--color); /* 使用变量控制颜色 */
+  background-color: var(--color);
   border-radius: 50%;
-  
-  /* 自动保持圆心重合 */
+  transition: filter 0.25s ease;
+
   left: calc((var(--size) - var(--ball-size)) / 2);
   top: calc((var(--size) - var(--ball-size)) / 2);
 }
 
-/* --- 1. 掉入逻辑 --- */
 .ball-physics-enter-active {
   animation: ball-drop-in var(--duration-ball-in) ease-out both;
 }
@@ -164,7 +165,6 @@ onUnmounted(() => timer && clearTimeout(timer));
   100% { transform: translateY(0); }
 }
 
-/* --- 2. 掉出逻辑 --- */
 .ball-physics-leave-active {
   transition: transform var(--duration-ball-out) ease-in;
 }
@@ -173,7 +173,8 @@ onUnmounted(() => timer && clearTimeout(timer));
   transform: translateY(calc(var(--size) + 10px));
 }
 
-.bowl-toggle:hover .bowl-ring {
-  filter: brightness(1.2);
+.bowl-toggle:hover .bowl-ring,
+.bowl-toggle:hover .ball {
+  filter: brightness(1.25);
 }
 </style>

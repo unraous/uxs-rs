@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { invoke } from '@tauri-apps/api/core';
 import { ref, onMounted } from 'vue';
-import ConfigPanel from '@panels/TheConfigPanel.vue';
+import ConfigPanel from '@/components/TheConfigPanel.vue';
 
 
 const version = ref('2.0.0');

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import MenuBar from '@/components/common/TheMenuBar.vue';
-import TheLeftView from '@/views/TheLeftView.vue';
-import TheRightView from '@/views/TheRightView.vue';
+import MenuBar from '@/components/TheMenuBar.vue';
+import TheLeftLayout from './TheLeftLayout.vue';
+import TheRightLayout from './TheRightLayout.vue';
 
 </script>
 
@@ -9,8 +9,8 @@ import TheRightView from '@/views/TheRightView.vue';
   <main class="container">
     <MenuBar />
     <div class="main-layout">
-      <TheLeftView />
-      <TheRightView />
+      <TheLeftLayout />
+      <TheRightLayout />
     </div>
   </main>
 </template>

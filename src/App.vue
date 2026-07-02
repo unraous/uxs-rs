@@ -21,6 +21,7 @@ import MainLayout from '@/layouts/TheMainLayout.vue';
 }
 
 :root {
+  user-select: none;
   font-family: 'DefaultFont', Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   line-height: 24px;

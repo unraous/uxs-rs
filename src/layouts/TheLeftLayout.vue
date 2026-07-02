@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import TheSettingsPanel from '@/components/panels/TheSettingsPanel.vue';
+import TheConfigLayout from './TheConfigLayout.vue';
 </script>
 
 <template>
   <div class="left-container">
     <div class="info-panel">this is in the info panel</div>
-    <TheSettingsPanel />
+  <TheConfigLayout />
   </div>
 </template>
 
@@ -18,7 +18,7 @@ import TheSettingsPanel from '@/components/panels/TheSettingsPanel.vue';
 }
 
 .info-panel {
-  height: 40%;
+  height: 50%;
   background-color: transparent;
 }
 

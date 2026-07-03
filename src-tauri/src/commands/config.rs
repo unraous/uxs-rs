@@ -1,8 +1,6 @@
 use crate::config::CONFIG;
 use crate::config::llm::LLMProvider;
 
-use anyhow::Result;
-
 // Get application metadata such as version and author information.
 #[tauri::command]
 pub fn metadata(key: String) -> String {
@@ -16,14 +14,21 @@ pub fn metadata(key: String) -> String {
     res
 }
 
+// Switch the current LLM provider to the specified one, returning true if successful, false otherwise.
 #[tauri::command]
-pub fn switch_provider(provider: String) -> Result<()> {
+pub fn switch_provider(provider: String) -> bool {
     log::debug!("正在切换 AI Provider 到 [{}]", provider);
-    CONFIG.llm.switch_to(provider.parse::<LLMProvider>()?);
-    log::debug!("成功切换 AI Provider 到 [{}]", provider);
-    Ok(())
+    if let Ok(llmp) = provider.parse::<LLMProvider>() {
+        CONFIG.llm.switch_to(llmp);
+        log::debug!("成功切换 AI Provider 到 [{}]", provider);
+        true
+    } else {
+        log::error!("无效的 AI Provider [{}]", provider);
+        false
+    }
 }
 
+// Get the list of available models for the current LLM provider.
 #[tauri::command]
 pub fn models() -> Vec<String> {
     log::debug!("正在获取可用模型列表...");
@@ -32,6 +37,7 @@ pub fn models() -> Vec<String> {
     models
 }
 
+// Set the API key for the current LLM provider. 
 #[tauri::command]
 pub fn set_key(key: String) {
     log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
@@ -39,6 +45,7 @@ pub fn set_key(key: String) {
     log::debug!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
 }
 
+// Switch the current model for the current LLM provider to the specified one.
 #[tauri::command]
 pub fn switch_model(model: String) {
     log::debug!("正在切换模型到 [{}]...", model);

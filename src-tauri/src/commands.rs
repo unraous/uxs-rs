@@ -11,7 +11,12 @@ macro_rules! register {
         tauri::generate_handler![
             window::close,
             window::minimize,
+            
             config::metadata,
+            config::switch_provider,
+            config::models,
+            config::switch_model,
+            config::set_key,
         ]
     }};
 }

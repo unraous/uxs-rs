@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BaseTextBox from './BaseTextBox.vue';
-import BaseConfigLabel from './BaseConfigLabel.vue';
+import BaseLabel from './BaseLabel.vue';
 
 defineProps<{
   modelValue: string;
@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue']);
 <template>
   <div class="base-config-input">
     <!-- 仅保留文本标签，设定固定宽度以确保右侧输入框对齐 -->
-    <BaseConfigLabel :label="label" />
+    <BaseLabel :label="label" />
     <div class="input-section">
       <BaseTextBox 
         :modelValue="modelValue" 

@@ -6,15 +6,15 @@ import { invoke } from '@tauri-apps/api/core';
 const appTitle = 'uxuescript'; 
 
 const minimizeApp = () => {
-    invoke('minimize').catch(e => {
-        console.error('最小化失败:', e);
-    });
+  invoke('minimize').catch(e => {
+    console.error('最小化失败:', e);
+  });
 };
 
 const closeApp = () => {
-    invoke('close').catch(e => {
-        console.error('关闭应用失败:', e);
-    });
+  invoke('close').catch(e => {
+    console.error('关闭应用失败:', e);
+  });
 };
 
 </script>

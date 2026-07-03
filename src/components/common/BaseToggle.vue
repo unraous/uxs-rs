@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue';
-import BaseConfigLabel from './BaseConfigLabel.vue';
+import BaseLabel from './BaseLabel.vue';
 
 const props = defineProps<{
   label: string;
@@ -43,7 +43,7 @@ onUnmounted(() => timer && clearTimeout(timer));
 
 <template>
   <div class="base-config-input">
-    <BaseConfigLabel :label="label" />
+    <BaseLabel :label="label" />
     
     <div class="input-section">
       <div class="bowl-toggle" @click="toggle">

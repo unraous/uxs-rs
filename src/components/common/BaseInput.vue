@@ -29,20 +29,9 @@ const emit = defineEmits(['update:modelValue']);
 .base-config-input {
   display: flex;
   align-items: center;
-  gap: 16px;
   width: 100%;
-  margin: 12px 0;
 }
 
-.label-text {
-  flex-shrink: 0;
-  width: 30%; /* 固定的标签宽度 */
-  text-align: center;
-  
-  font-size: 1.25rem;
-  color: #0d58a4;
-  letter-spacing: 1px;
-}
 
 .input-section {
   flex-grow: 1;

@@ -37,7 +37,6 @@ import TheAPIPanel from '@/components/TheAPIPanel.vue';
 
 .info-panel {
   height: 55%;
-  background-color: yellow;
   flex: 1;
   flex-direction: row;
 }

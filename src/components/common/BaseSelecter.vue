@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
 import BaseLabel from './BaseLabel.vue';
 
 const props = withDefaults(
   defineProps<{
     modelValue: number; 
     label: string;
-    options: string[];    
+    options?: string[];    
   }>(),
   {
-    modelValue: () => 0,
     options: () => ["undefined", "option1", "option2", "option3"]
   }
 );
@@ -17,35 +17,53 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: number): void;
 }>();
 
-/**
- * 处理下拉框发生改变的事件
- */
-const handleSelectChange = (event: Event) => {
-  const target = event.target as HTMLSelectElement;
-  emit('update:modelValue', Number.parseInt(target.value));
+const isOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+    isOpen.value = false;
+  }
 };
+
+onMounted(() => document.addEventListener('click', handleClickOutside));
+onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 </script>
 
 <template>
   <div class="base-config-select">
     <BaseLabel :label="label" />
     
-    <div class="input-section">
-      <select
-        :id = "label"
-        :value="modelValue"
-        @change="handleSelectChange"
-        class="single-select"
+    <div class="input-section" ref="dropdownRef">
+      <div
+        :id="label"
+        class="select-trigger"
+        :class="{ 'is-open': isOpen }"
+        @click="isOpen = !isOpen"
       >
-        <option value="" disabled hidden>请选择...</option>
-        <option 
-          v-for="opt, index in options" 
-          :key="index" 
-          :value="index"
-        >
-          {{ opt }}
-        </option>
-      </select>
+        <span class="selected-text">{{ options?.[modelValue] ?? '' }}</span>
+        <span class="select-arrow" :class="{ 'is-open': isOpen }">
+          <svg viewBox="0 -960 960 960" width="24" height="24" fill="currentColor">
+            <path d="m256-424-56-56 280-280 280 280-56 56-224-223-224 223Z"/>
+          </svg>
+        </span>
+      </div>
+      
+      <Transition name="dropdown">
+        <div v-show="isOpen" class="select-dropdown-wrapper">
+          <div class="select-dropdown">
+            <div
+              v-for="(opt, index) in options"
+              :key="index"
+              class="select-option"
+              :class="{ 'is-selected': index === modelValue }"
+              @click="emit('update:modelValue', index); isOpen = false"
+            >
+              {{ opt }}
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -54,29 +72,113 @@ const handleSelectChange = (event: Event) => {
 .base-config-select {
   display: flex;
   align-items: center;
-  gap: 16px;
   width: 100%;
-  margin: 12px 0;
 }
 
 .input-section {
   flex-grow: 1;
+  position: relative;
 }
 
-.single-select {
-  width: 100%; /* 单选框占满容器宽度 */
-  padding: 6px 12px;
-  font-size: 1rem;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  background-color: #fff;
-  color: #606266;
-  outline: none;
+.select-trigger,
+.select-option {
+  height: 48px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  user-select: none;
+}
+
+.select-trigger {
+  width: 100%; 
+  font-size: 1rem;
+  border: 2px solid #0d58a4;
+  background-color: #ebe2cf;
+  justify-content: space-between;
   transition: border-color 0.2s;
 }
 
-.single-select:focus {
-  border-color: #0d58a4;
+.select-trigger:hover {
+  border-color: #0b4c8d;
+}
+
+
+
+.selected-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-arrow {
+  display: flex;
+  transition: transform 0.2s;
+  color: #0d58a4;
+  transform: rotate(180deg);
+}
+
+.select-arrow.is-open {
+  transform: rotate(0deg);
+}
+
+.select-dropdown-wrapper {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.select-dropdown {
+  background-color: #ebe2cf;
+  border: 2px solid #0d58a4;
+  border-top: none;
+  max-height: 192px;
+  overflow-y: auto;
+  box-shadow: 0 6px 16px rgba(13, 88, 164, 0.15);
+}
+
+.select-option {
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.select-option:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.select-option.is-selected {
+  background-color: #0d58a4;
+  color: #ffffff;
+}
+
+.select-dropdown::-webkit-scrollbar {
+  width: 5px;
+}
+
+.select-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.select-dropdown::-webkit-scrollbar-thumb {
+  background-color: #0b4c8d;
+  border-radius: 0px;
+}
+
+/* 下拉菜单缓动动画 */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: max-height 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  max-height: 0 !important;
+}
+
+.dropdown-enter-to,
+.dropdown-leave-from {
+  max-height: 194px !important;
 }
 </style>

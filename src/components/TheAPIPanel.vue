@@ -30,7 +30,6 @@ const providers = [
 
 <style scoped>
 .api-panel {
-  padding: 20px;
   width: 50%;
   height: 100%;
   flex: 1;
@@ -41,15 +40,17 @@ const providers = [
 .settings-container {
   flex: 1;
   display: flex;
-  gap: 10px;
+  gap: 48px;
   flex-direction: column;
   justify-content: center;
 }
   
 .title {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-    text-align: center;
+  display: flex;
+  height: 48px;
+  font-size: 1.5rem;
+  align-items: center;      /* 垂直居中 */
+  justify-content: center;   /* 水平居中 */
 }
 
 </style>

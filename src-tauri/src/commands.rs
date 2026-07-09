@@ -13,9 +13,13 @@ macro_rules! register {
             window::minimize,
             
             config::metadata,
+            config::providers,
+            config::current_provider,
             config::switch_provider,
             config::models,
+            config::current_model,
             config::switch_model,
+            config::api_key,
             config::set_key,
         ]
     }};

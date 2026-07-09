@@ -18,9 +18,10 @@ use ollama::OllamaConfig;
 
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use strum::{EnumIter, EnumString};
+use strum::{EnumIter, EnumString, AsRefStr};
 
-#[derive(Serialize, Deserialize, Debug, Default, EnumIter, EnumString)]
+#[derive(Serialize, Deserialize, Debug, Default, EnumIter, EnumString, AsRefStr)]
+#[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
 pub enum LLMProvider {
     #[default]

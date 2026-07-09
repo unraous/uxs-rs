@@ -8,8 +8,10 @@ use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for OpenrouterConfig {
+    fn api_key(&self) -> String { self.api_key.lock().clone() }
     fn set_key(&self, key: &str) { *self.api_key.lock() = key.to_string(); }
     fn available_models(&self) -> Vec<String> { self.models.clone() }
+    fn current_model(&self) -> String { self.chosen_model.lock().clone() }
     fn switch_model(&self, model: &str) { *self.chosen_model.lock() = model.to_string(); }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {

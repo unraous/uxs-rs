@@ -1,18 +1,24 @@
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import BaseButton from '@/components/common/BaseButton.vue';
 import TheAPIPanel from '@/components/TheAPIPanel.vue';
 
+const apiPanelRef = ref<InstanceType<typeof TheAPIPanel> | null>(null);
+
+const saveConfig = async () => {
+  await apiPanelRef.value?.saveConfig();
+}
 </script>
 
 <template>
   <div class="setting-panel">
     <h1 class="title">Configuration</h1>
     <div class="info-panel">
-      <TheAPIPanel />
+      <TheAPIPanel ref="apiPanelRef" />
       <div class="course-settings-panel"></div>
     </div>
-    <div class="save-button">
+    <div class="save-button" @click="saveConfig">
       <BaseButton label="Save" style="width: 25%;" />
     </div>
   </div>

@@ -1,5 +1,6 @@
 use crate::config::CONFIG;
 use crate::config::llm::LLMProvider;
+use strum::IntoEnumIterator;
 
 // Get application metadata such as version and author information.
 #[tauri::command]
@@ -12,6 +13,23 @@ pub fn metadata(key: String) -> String {
     };
     log::debug!("成功获取元数据 [{}]: {}", key, res);
     res
+}
+
+// Get the list of available LLM providers.
+#[tauri::command]
+pub fn providers() -> Vec<String> {
+    log::debug!("正在获取可用 AI Provider 列表...");
+    let providers: Vec<String> = LLMProvider::iter().map(|p| p.as_ref().to_string()).collect();
+    log::debug!("成功获取 AI Provider 列表: {:?}", providers);
+    providers
+}
+
+// Get the current LLM provider.
+#[tauri::command]
+pub fn current_provider() -> String {
+    let provider = CONFIG.llm.provider.lock();
+    log::debug!("正在获取当前 AI Provider: {}", provider.as_ref());
+    provider.as_ref().to_string()
 }
 
 // Switch the current LLM provider to the specified one, returning true if successful, false otherwise.
@@ -37,12 +55,11 @@ pub fn models() -> Vec<String> {
     models
 }
 
-// Set the API key for the current LLM provider. 
+// Get the current model for the current LLM provider.
 #[tauri::command]
-pub fn set_key(key: String) {
-    log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
-    CONFIG.llm.current().set_key(&key);
-    log::debug!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
+pub fn current_model() -> String {
+    log::debug!("当正在获取当前模型: {}", CONFIG.llm.current().current_model());
+    CONFIG.llm.current().current_model()
 }
 
 // Switch the current model for the current LLM provider to the specified one.
@@ -51,4 +68,23 @@ pub fn switch_model(model: String) {
     log::debug!("正在切换模型到 [{}]...", model);
     CONFIG.llm.current().switch_model(&model);
     log::debug!("成功切换模型到 [{}]", model);
+}
+
+#[tauri::command]
+pub fn api_key() -> String {
+    log::debug!("正在获取当前 API Key...");
+    let key = CONFIG.llm.current().api_key();
+    log::debug!("成功获取当前 API Key: {}...", key);
+    key
+}
+
+// Set the API key for the current LLM provider. 
+#[tauri::command]
+pub fn set_key(key: String) {
+    log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
+    CONFIG.llm.current().set_key(&key);
+    CONFIG.save().unwrap_or_else(|e| {
+        log::error!("保存配置文件失败: {}", e);
+    });
+    log::debug!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
 }

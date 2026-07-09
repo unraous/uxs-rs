@@ -1,20 +1,43 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import BaseInput from './common/BaseInput.vue';
 import BaseSelecter from './common/BaseSelecter.vue';
+import { invoke } from '@tauri-apps/api/core';
 
-const provider = ref(0); // 默认选择 OpenAI
-const model = ref('');
+const provider = ref(0);
+const providers = ref<string[]>([]);
+const model = ref(0);
+const models = ref<string[]>([]);
 const apiKey = ref('');
-const providers = [
-  "bigmodel",
-  "deepseek",
-  "google",
-  "moonshot",
-  "ollama",
-  "openai",
-  "openrouter",
-]
+
+const loadProvider = async () => {
+  await invoke('switch_provider', { provider: providers.value[provider.value] });
+  models.value = await invoke('models') as string[];
+  const currentModel = await invoke('current_model') as string;
+  console.log('Current model:', currentModel);
+  model.value = models.value.includes(currentModel) ? models.value.indexOf(currentModel) : 0;
+  apiKey.value = await invoke('api_key') as string;
+};
+
+const saveConfig = async () => {
+  await invoke('set_key', { key: apiKey.value });
+};
+
+onMounted(async () => {
+  providers.value = await invoke('providers') as string[];
+  const currentProvider = await invoke('current_provider') as string;
+  provider.value = providers.value.includes(currentProvider) ? providers.value.indexOf(currentProvider) : 0;
+  await loadProvider();
+});
+
+watch(provider, loadProvider);
+
+watch(model, async () => {
+  await invoke('switch_model', { model: models.value[model.value] });
+});
+
+
+defineExpose({ saveConfig });
 </script>
 
 <template>
@@ -22,7 +45,7 @@ const providers = [
     <h2 class="title">API</h2>
     <div class="settings-container">
       <BaseSelecter v-model="provider" label="Provider" :options="providers" />
-      <BaseInput v-model="model" label="Model" />
+      <BaseSelecter v-model="model" label="Model" :options="models" />
       <BaseInput v-model="apiKey" label="API Key" />
     </div>
   </div>
@@ -53,4 +76,13 @@ const providers = [
   justify-content: center;   /* 水平居中 */
 }
 
+
+:deep(.base-config-select:first-child .select-dropdown-wrapper) {
+  z-index: 20;
+}
+
+/* Model 下拉菜单 z-index 低一点 */
+:deep(.base-config-select:nth-child(2) .select-dropdown-wrapper) {
+  z-index: 19;
+}
 </style>

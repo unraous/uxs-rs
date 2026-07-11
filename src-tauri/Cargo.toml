@@ -49,3 +49,4 @@ dotenv = "0.15.0"
 parking_lot = { version = "0.12.5", features = ["serde"] }
 strum = { version = "0.28.0", features = ["derive"] }
 
+[workspace]

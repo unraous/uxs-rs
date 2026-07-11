@@ -13,6 +13,7 @@ use serde::{Serialize, Deserialize};
 use once_cell::sync::Lazy;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
 pub struct Config {
     pub metadata: MetadataConfig,
     pub paths: PathsConfig,

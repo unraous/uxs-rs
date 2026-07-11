@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(default)]
 pub struct OptionsConfig {
     pub launch_option: u8,
     pub force_speed: bool,

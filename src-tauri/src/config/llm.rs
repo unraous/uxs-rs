@@ -35,6 +35,7 @@ pub enum LLMProvider {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
 pub struct LLMConfig {
     pub provider: Mutex::<LLMProvider>,
     pub bigmodel: BigModelConfig,

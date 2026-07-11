@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 use log::LevelFilter;
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(default)]
 pub struct MetadataConfig {
     pub author: String,
     pub title: String,

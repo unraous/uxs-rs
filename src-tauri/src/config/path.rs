@@ -7,6 +7,7 @@ use log::error;
 
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(default)]
 pub struct PathsConfig {
     pub dirs: HashMap<String, PathBuf>,
     pub files: HashMap<String, PathBuf>,

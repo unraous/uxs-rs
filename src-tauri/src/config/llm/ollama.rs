@@ -13,6 +13,7 @@ struct OllamaResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(default)]
 pub struct OllamaConfig {
     pub models: Vec<String>,
     pub chosen_model: Mutex<String>,

@@ -2,6 +2,7 @@ use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
+#[serde(default)]
 pub struct OpenAIConfig {
     pub api_key: Mutex<String>,
     pub models: Vec<String>,

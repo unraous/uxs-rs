@@ -10,7 +10,7 @@ pub enum Type {
 }
 
 /// Returns the type of the given URL based on its structure and domain.
-/// This function checks if the URL belongs to the "chaoxing.com" domain 
+/// This function checks if the URL belongs to the "chaoxing.com" domain
 /// and classifies it.
 pub fn classify(url: &tauri::Url) -> Type {
     let host = url.host_str().unwrap_or_default();
@@ -43,15 +43,16 @@ mod tests {
     fn test_classify_urls() {
         let url = "https://i.chaoxing.com".parse().unwrap();
         assert_eq!(classify(&url), Type::MainSpace);
-        
+
         let url = "https://mooc1.chaoxing.com/mycourse/...".parse().unwrap();
         assert_eq!(classify(&url), Type::Course);
-        
-        let url = "https://passport2.chaoxing.com/login?refer=https://www.chaoxing.com".parse().unwrap();
+
+        let url = "https://passport2.chaoxing.com/login?refer=https://www.chaoxing.com"
+            .parse()
+            .unwrap();
         assert_eq!(classify(&url), Type::Login);
 
         let url = "about:blank".parse().unwrap();
         assert_eq!(classify(&url), Type::Mask);
     }
 }
-

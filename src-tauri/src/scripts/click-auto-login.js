@@ -1,1 +1,3 @@
-document.querySelector('.check-input').click();
+(function () {
+    document.querySelector('.check-input').click();
+})();

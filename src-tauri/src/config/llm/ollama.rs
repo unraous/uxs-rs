@@ -1,6 +1,6 @@
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
 use parking_lot::Mutex;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 struct OllamaModelItem {
@@ -31,7 +31,7 @@ impl OllamaConfig {
                 *chosen_model = first_model.clone();
             }
         }
-        
+
         Ok(())
     }
 
@@ -67,8 +67,11 @@ mod tests {
         };
         // 模拟 Ollama 挂掉 / 端口不通的情况
         config.fetch_from("http://localhost").await;
-        
+
         assert!(config.models.is_empty(), "网络不通时 models 应该被清空");
-        assert!(config.chosen_model.lock().is_empty(), "网络不通时 chosen_model 应该被置空");
+        assert!(
+            config.chosen_model.lock().is_empty(),
+            "网络不通时 chosen_model 应该被置空"
+        );
     }
 }

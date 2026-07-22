@@ -20,10 +20,9 @@ impl Default for GoogleConfig {
                 String::from("gemini-flash-lite-latest"),
                 String::from("gemini-flash-latest"),
                 String::from("gemini-pro-latest"),
-                String::from("gemma-4-31b-it")
+                String::from("gemma-4-31b-it"),
             ],
             chosen_model: Mutex::new(String::from("gemini-3.1-flash-lite")),
         }
     }
 }
-

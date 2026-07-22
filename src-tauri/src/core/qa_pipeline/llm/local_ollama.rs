@@ -1,21 +1,34 @@
-use super::{AnswerItem, SYSTEM_PROMPT, LLM};
+use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::core::qa_pipeline::html::Question;
 use crate::config::llm::ollama::OllamaConfig;
+use crate::core::qa_pipeline::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
 impl LLM for OllamaConfig {
-    fn api_key(&self) -> String { String::new() } // Ollama has no API key, return empty string
-    fn set_key(&self, _key: &str) { log::warn!("Ollama 无 API Key 可设置") }
-    fn available_models(&self) -> Vec<String> { self.models.clone() }
-    fn current_model(&self) -> String { self.chosen_model.lock().clone() }
-    fn switch_model(&self, model: &str) { *self.chosen_model.lock() = model.to_string(); }
+    fn api_key(&self) -> String {
+        String::new()
+    } // Ollama has no API key, return empty string
+    fn set_key(&self, _key: &str) {
+        log::warn!("Ollama 无 API Key 可设置")
+    }
+    fn available_models(&self) -> Vec<String> {
+        self.models.clone()
+    }
+    fn current_model(&self) -> String {
+        self.chosen_model.lock().clone()
+    }
+    fn switch_model(&self, model: &str) {
+        *self.chosen_model.lock() = model.to_string();
+    }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
-        log::debug!("将使用 Ollama 本地模型 {} 进行推理", *self.chosen_model.lock());
+        log::debug!(
+            "将使用 Ollama 本地模型 {} 进行推理",
+            *self.chosen_model.lock()
+        );
 
         let request_body = serde_json::json!({
             "model": *self.chosen_model.lock(),
@@ -29,7 +42,7 @@ impl LLM for OllamaConfig {
                     "content": serde_json::to_string(&question)?
                 }
             ],
-            "stream": false 
+            "stream": false
         });
 
         let response = reqwest::Client::new()
@@ -44,7 +57,8 @@ impl LLM for OllamaConfig {
 
         // 解析响应
         let data: serde_json::Value = response.json().await?;
-        let content = data.pointer("/message/content")
+        let content = data
+            .pointer("/message/content")
             .and_then(|v| v.as_str())
             .ok_or_else(|| anyhow::anyhow!("无法从 Ollama 响应提取文本。原始响应: {}", data))?;
 
@@ -63,12 +77,12 @@ mod tests {
         // 1. 获取测试文件路径 (假设在 src-tauri 目录下运行)
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("tests/assets/course-page/decrypted.json");
-        
+
         // 2. 读取并解析 JSON 文件
-        let json_str = fs::read_to_string(&path)
-            .unwrap_or_else(|_| panic!("找不到测试文件: {:?}", path));
-        let questions: Vec<Question> = serde_json::from_str(&json_str)
-            .expect("JSON 解析到 Question 结构失败");
+        let json_str =
+            fs::read_to_string(&path).unwrap_or_else(|_| panic!("找不到测试文件: {:?}", path));
+        let questions: Vec<Question> =
+            serde_json::from_str(&json_str).expect("JSON 解析到 Question 结构失败");
 
         println!("成功加载了 {} 道题目", questions.len());
 

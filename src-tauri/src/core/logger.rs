@@ -8,9 +8,8 @@ use log::info;
 pub fn init() -> Result<(), fern::InitError> {
     CONFIG.paths.ensure()?;
 
-    let log_file = CONFIG.paths.dirs["logs"].join(
-        format!("{}.log", Local::now().format("%Y-%m-%d_%H-%M-%S"))
-    );
+    let log_file =
+        CONFIG.paths.dirs["logs"].join(format!("{}.log", Local::now().format("%Y-%m-%d_%H-%M-%S")));
 
     Dispatch::new()
         .format(|out, message, record| {
@@ -22,7 +21,7 @@ pub fn init() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        .chain(fern::log_file(&log_file)?) 
+        .chain(fern::log_file(&log_file)?)
         .chain(std::io::stdout())
         .level(log::LevelFilter::Info)
         .level_for("uxs_lib", CONFIG.metadata.log_level)

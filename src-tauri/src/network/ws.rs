@@ -1,23 +1,23 @@
 use crate::core::qa_pipeline::execute_qa_workflow;
 
-use serde::{Serialize, Deserialize};
-use futures_util::{StreamExt, SinkExt};
+use futures_util::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
 use std::thread;
 use tokio::net::TcpStream;
-use tokio_tungstenite::tungstenite::protocol::Message;
 use tokio::sync::mpsc;
+use tokio_tungstenite::tungstenite::protocol::Message;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "event", content = "data")]
 pub enum WSRequest {
-    SolveQuestions{ html: String },
+    SolveQuestions { html: String },
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(tag = "status", content = "data")]
 pub enum WSResponse {
-    Success{ answer: String },
-    Error{ code: u16, message: String },
+    Success { answer: String },
+    Error { code: u16, message: String },
 }
 
 impl WSRequest {
@@ -26,7 +26,6 @@ impl WSRequest {
     }
 }
 
-
 async fn on_event(event: WSRequest, tx: mpsc::UnboundedSender<String>) {
     match event {
         WSRequest::SolveQuestions { html } => {
@@ -34,15 +33,18 @@ async fn on_event(event: WSRequest, tx: mpsc::UnboundedSender<String>) {
 
             match execute_qa_workflow(&html).await {
                 Ok(answers) => {
-                    log::info!("HTML 答题处理成功, 答案数量: {}", answers.len());    
-                    let resp = WSResponse::Success { 
-                        answer: serde_json::to_string(&answers).unwrap_or_default() 
+                    log::info!("HTML 答题处理成功, 答案数量: {}", answers.len());
+                    let resp = WSResponse::Success {
+                        answer: serde_json::to_string(&answers).unwrap_or_default(),
                     };
                     let _ = tx.send(serde_json::to_string(&resp).unwrap());
                 }
                 Err(e) => {
                     log::error!("处理 HTML 答题时发生错误: {}", e);
-                    let resp = WSResponse::Error { code: 500, message: e.to_string() };
+                    let resp = WSResponse::Error {
+                        code: 500,
+                        message: e.to_string(),
+                    };
                     let _ = tx.send(serde_json::to_string(&resp).unwrap());
                 }
             }
@@ -62,14 +64,17 @@ async fn on_message(msg: Message, tx: mpsc::UnboundedSender<String>) {
 async fn client(stream: TcpStream) {
     if let Ok(ws_stream) = tokio_tungstenite::accept_async(stream).await {
         log::info!("WebSocket 客户端已连接");
-        
+
         let (mut ws_sender, mut ws_receiver) = ws_stream.split();
         let (tx, mut rx) = mpsc::unbounded_channel::<String>();
 
         // 任务 1：专门负责从通道读消息并发送给客户端（写任务）
         let send_task = tokio::spawn(async move {
             while let Some(msg) = rx.recv().await {
-                if let Err(e) = ws_sender.send(tokio_tungstenite::tungstenite::Message::Text(msg.into())).await {
+                if let Err(e) = ws_sender
+                    .send(tokio_tungstenite::tungstenite::Message::Text(msg.into()))
+                    .await
+                {
                     log::error!("发送 WebSocket 消息失败: {}", e);
                     break;
                 }
@@ -99,11 +104,12 @@ async fn observe(listener: &tokio::net::TcpListener) {
 
 async fn server() {
     let addr = "127.0.0.1:9817";
-    let listener = tokio::net::TcpListener::bind(addr).await
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
         .expect("无法绑定WebSocket端口");
-    
+
     log::info!("WebSocket服务器启动在 {}", addr);
-    
+
     loop {
         observe(&listener).await;
     }
@@ -121,10 +127,10 @@ pub fn setup() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio_tungstenite::connect_async;
-    use std::time::Duration;
-    use dotenv::dotenv;
     use crate::config::CONFIG;
+    use dotenv::dotenv;
+    use std::time::Duration;
+    use tokio_tungstenite::connect_async;
 
     #[tokio::test]
     async fn test_mock_frontend_flow() {
@@ -137,17 +143,16 @@ mod tests {
 
         // 等待一秒确保服务器完成绑定
         tokio::time::sleep(Duration::from_secs(1)).await;
-        
+
         // 2. 模拟前端连接
         let (mut ws_stream, _) = connect_async("ws://127.0.0.1:9817")
-        .await
-        .expect("无法连接到 WebSocket 服务器");
-    
+            .await
+            .expect("无法连接到 WebSocket 服务器");
+
         println!("✅ Mock 前端已成功连接");
         dotenv().ok();
-    
-        let api_key = std::env::var("BIGMODEL_API_KEY")
-            .expect("请在 .env 中设置 BIGMODEL_API_KEY");
+
+        let api_key = std::env::var("BIGMODEL_API_KEY").expect("请在 .env 中设置 BIGMODEL_API_KEY");
         CONFIG.llm.current().set_key(&api_key);
 
         let html_path = "tests/assets/course-page/webpage.html";
@@ -157,11 +162,14 @@ mod tests {
 
         let request = WSRequest::SolveQuestions { html: html_content };
         let request_json = serde_json::to_string(&request).unwrap();
-        
-        ws_stream.send(Message::Text(request_json.into())).await.expect("发送请求失败");
+
+        ws_stream
+            .send(Message::Text(request_json.into()))
+            .await
+            .expect("发送请求失败");
 
         match tokio::time::timeout(Duration::from_secs(180), ws_stream.next()).await {
-            Ok(Some(Ok(Message::Text(text)))) =>  {
+            Ok(Some(Ok(Message::Text(text)))) => {
                 println!("📥 收到后端响应: {}", text);
                 let response: WSResponse = serde_json::from_str(&text).expect("响应格式解析失败");
                 match response {
@@ -172,7 +180,6 @@ mod tests {
                         println!("❌ 后端处理报错: [Code {}] {}", code, message);
                     }
                 }
-                
             }
             Ok(None) => panic!("WebSocket 连接意外关闭"),
             Err(_) => panic!("测试超时：后端在 180 秒内没有返回答案"),

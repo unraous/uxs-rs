@@ -1,16 +1,15 @@
 pub mod html;
+pub mod llm;
 pub mod mapper;
 pub mod recognizer;
 pub mod render;
-pub mod llm;
 
 use html::QuestionsRaw;
-use mapper::decrypt;
 use llm::AnswerItem;
+use mapper::decrypt;
 
 use crate::config::CONFIG;
 use anyhow::Result;
-
 
 /// A completely stateless, asynchronous function that takes raw HTML content,
 /// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
@@ -18,16 +17,15 @@ use anyhow::Result;
 pub async fn execute_qa_workflow(html: &str) -> Result<Vec<AnswerItem>> {
     let decrypted = decrypt(QuestionsRaw::new(html)?);
     CONFIG.llm.current().solve(decrypted).await
-    
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
-    use std::fs;
-    use llm::LLM;
     use crate::config::llm::bigmodel::BigModelConfig;
+    use llm::LLM;
+    use std::fs;
+    use std::path::PathBuf;
 
     #[tokio::test]
     async fn test_solve_html_integration() {

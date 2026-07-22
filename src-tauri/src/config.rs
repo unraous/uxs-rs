@@ -1,16 +1,17 @@
-mod path;
 mod metadata;
-mod options;
+mod path;
 
 pub mod llm;
+pub mod options;
 
-use metadata::MetadataConfig;
-use path::PathsConfig;
-use options::OptionsConfig;
 use llm::LLMConfig;
+use metadata::MetadataConfig;
+use options::OptionsConfig;
+use path::PathsConfig;
 
-use serde::{Serialize, Deserialize};
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
@@ -28,21 +29,19 @@ impl Config {
         let config = Self::default();
         match toml::from_str::<Config>(
             std::fs::read_to_string(&config.paths.files["config"])
-                .unwrap_or_default().as_str()
+                .unwrap_or_default()
+                .as_str(),
         ) {
             Ok(loaded) => loaded,
-            Err(_) => config
-        } 
+            Err(_) => config,
+        }
     }
 
     pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
-        std::fs::write(
-            &self.paths.files["config"],
-            toml::to_string_pretty(&self)?
-        )?;
+        std::fs::write(&self.paths.files["config"], toml::to_string_pretty(&self)?)?;
         log::info!("配置已保存到 {}", self.paths.files["config"].display());
         Ok(())
     }
 }
 
-pub static CONFIG: Lazy<Config> = Lazy::new(Config::load);    
+pub static CONFIG: LazyLock<Config> = LazyLock::new(Config::load);

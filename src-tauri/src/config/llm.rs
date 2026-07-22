@@ -2,23 +2,23 @@ pub mod bigmodel;
 pub mod deepseek;
 pub mod google;
 pub mod moonshot;
+pub mod ollama;
 pub mod openai;
 pub mod openrouter;
-pub mod ollama;
 
-use crate::core::qa_pipeline::llm::LLM; 
+use crate::core::qa_pipeline::llm::LLM;
 
 use bigmodel::BigModelConfig;
 use deepseek::DeepSeekConfig;
 use google::GoogleConfig;
 use moonshot::MoonshotConfig;
+use ollama::OllamaConfig;
 use openai::OpenAIConfig;
 use openrouter::OpenrouterConfig;
-use ollama::OllamaConfig;
 
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
-use strum::{EnumIter, EnumString, AsRefStr};
+use strum::{AsRefStr, EnumIter, EnumString};
 
 #[derive(Serialize, Deserialize, Debug, Default, EnumIter, EnumString, AsRefStr)]
 #[serde(rename_all = "lowercase")]
@@ -37,7 +37,7 @@ pub enum LLMProvider {
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
 pub struct LLMConfig {
-    pub provider: Mutex::<LLMProvider>,
+    pub provider: Mutex<LLMProvider>,
     pub bigmodel: BigModelConfig,
     pub deepseek: DeepSeekConfig,
     pub google: GoogleConfig,

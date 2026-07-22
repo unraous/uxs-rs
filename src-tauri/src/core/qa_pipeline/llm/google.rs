@@ -1,7 +1,7 @@
-use super::{AnswerItem, SYSTEM_PROMPT, LLM};
+use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::core::qa_pipeline::html::Question;
 use crate::config::llm::google::GoogleConfig;
+use crate::core::qa_pipeline::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -9,17 +9,28 @@ use serde_json::json;
 
 #[async_trait]
 impl LLM for GoogleConfig {
-    fn api_key(&self) -> String { self.api_key.lock().clone() }
-    fn set_key(&self, key: &str) { *self.api_key.lock() = key.to_string(); }
-    fn available_models(&self) -> Vec<String> { self.models.clone() }
-    fn current_model(&self) -> String { self.chosen_model.lock().clone() }
-    fn switch_model(&self, model: &str) { *self.chosen_model.lock() = model.to_string(); }
+    fn api_key(&self) -> String {
+        self.api_key.lock().clone()
+    }
+    fn set_key(&self, key: &str) {
+        *self.api_key.lock() = key.to_string();
+    }
+    fn available_models(&self) -> Vec<String> {
+        self.models.clone()
+    }
+    fn current_model(&self) -> String {
+        self.chosen_model.lock().clone()
+    }
+    fn switch_model(&self, model: &str) {
+        *self.chosen_model.lock() = model.to_string();
+    }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 Google 模型 {} 进行推理", *self.chosen_model.lock());
         // see reference: https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
         // the mimeType is not string but enum, so need to use ""APPLICATION_JSON"" instead of "application/json"
-        let mut body: serde_json::Value = serde_json::from_str(include_str!("./google-request.json"))?;
+        let mut body: serde_json::Value =
+            serde_json::from_str(include_str!("./google-request.json"))?;
         body["contents"] = json!([{
             "parts": [{ "text": serde_json::to_string(&question)? }]
         }]);
@@ -40,14 +51,15 @@ impl LLM for GoogleConfig {
 
         if !response.status().is_success() {
             anyhow::bail!(
-                "Google API 错误 ({}): {}", 
-                response.status().as_str(), 
+                "Google API 错误 ({}): {}",
+                response.status().as_str(),
                 response.text().await?
             )
         }
 
         let data: serde_json::Value = response.json().await?;
-        let content = data.pointer("/candidates/0/content/parts/0/text")
+        let content = data
+            .pointer("/candidates/0/content/parts/0/text")
             .and_then(|v| v.as_str())
             .ok_or_else(|| anyhow::anyhow!("无法从 Google 响应提取文本。原始响应: {}", data))?;
 
@@ -66,23 +78,25 @@ mod tests {
         // 1. 获取测试文件路径 (假设在 src-tauri 目录下运行)
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("tests/assets/course-page/decrypted.json");
-        
+
         // 2. 读取并解析 JSON 文件
-        let json_str = fs::read_to_string(&path)
-            .unwrap_or_else(|_| panic!("找不到测试文件: {:?}", path));
-        let questions: Vec<Question> = serde_json::from_str(&json_str)
-            .expect("JSON 解析到 Question 结构失败");
+        let json_str =
+            fs::read_to_string(&path).unwrap_or_else(|_| panic!("找不到测试文件: {:?}", path));
+        let questions: Vec<Question> =
+            serde_json::from_str(&json_str).expect("JSON 解析到 Question 结构失败");
 
         println!("成功加载了 {} 道题目", questions.len());
 
         dotenv::dotenv().ok();
-        
+
         // 从环境变量 GOOGLE_API_KEY 读取，如果不存在则报错
-        let api_key = std::env::var("GOOGLE_API_KEY")
-            .expect("请在 .env 文件或环境变量中设置 GOOGLE_API_KEY");
+        let api_key =
+            std::env::var("GOOGLE_API_KEY").expect("请在 .env 文件或环境变量中设置 GOOGLE_API_KEY");
 
-
-        let config = GoogleConfig { api_key: parking_lot::Mutex::new(api_key), ..Default::default() };
+        let config = GoogleConfig {
+            api_key: parking_lot::Mutex::new(api_key),
+            ..Default::default()
+        };
 
         match config.solve(questions.clone()).await {
             Ok(answers) => {

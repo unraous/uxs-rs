@@ -35,15 +35,18 @@ fn extract_font(html: &str) -> Option<Vec<u8>> {
 }
 
 fn trim(s: &str) -> String {
-    s.split_whitespace().collect::<Vec<_>>().join(" ").trim().to_string()
+    s.split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .trim()
+        .to_string()
 }
 
 fn select_options(elem: &scraper::element_ref::ElementRef) -> Vec<String> {
     Selector::parse("li")
         .ok()
         .map(|sel| {
-            elem
-                .select(&sel)
+            elem.select(&sel)
                 .map(|li| trim(&li.text().collect::<String>()))
                 .filter(|t| !t.is_empty())
                 .collect()
@@ -64,13 +67,11 @@ fn extract_questions(html: &str) -> Vec<Question> {
     document
         .select(&Selector::parse("div.TiMu.newTiMu").unwrap())
         .enumerate()
-        .map(|(idx, qelem)| {
-            Question {
-                id: select_text(&qelem, "i.fl").unwrap_or_else(|| (idx + 1).to_string()),
-                qtype: select_text(&qelem, "span.newZy_TItle").unwrap_or_default(),
-                stem: select_text(&qelem, "div.fontLabel").unwrap_or_default(),
-                options: select_options(&qelem),
-            }
+        .map(|(idx, qelem)| Question {
+            id: select_text(&qelem, "i.fl").unwrap_or_else(|| (idx + 1).to_string()),
+            qtype: select_text(&qelem, "span.newZy_TItle").unwrap_or_default(),
+            stem: select_text(&qelem, "div.fontLabel").unwrap_or_default(),
+            options: select_options(&qelem),
         })
         .collect()
 }
@@ -96,18 +97,26 @@ mod tests {
         let html = include_str!("../../../tests/assets/course-page/webpage.html");
         let raw = QuestionsRaw::new(html).expect("Failed to parse HTML");
 
-        let expected_json: serde_json::Value = serde_json::from_str(
-            include_str!("../../../tests/assets/course-page/questions.json")
-        ).expect("Invalid expected questions.json");
-        let actual_json = serde_json::to_value(&raw.questions).expect("Serialize parsed questions failed");
-        assert_eq!(expected_json, actual_json, "Parsed questions differ from questions.json");
+        let expected_json: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../tests/assets/course-page/questions.json"
+        ))
+        .expect("Invalid expected questions.json");
+        let actual_json =
+            serde_json::to_value(&raw.questions).expect("Serialize parsed questions failed");
+        assert_eq!(
+            expected_json, actual_json,
+            "Parsed questions differ from questions.json"
+        );
 
         let expected_ttf = include_bytes!("../../../tests/assets/course-page/cxs-font.ttf");
         let actual_ttf = raw.font.as_ref().expect("No font extracted from HTML");
-        assert_eq!(expected_ttf, actual_ttf.as_slice(), "Extracted font bytes differ from cxs-font.ttf");      
+        assert_eq!(
+            expected_ttf,
+            actual_ttf.as_slice(),
+            "Extracted font bytes differ from cxs-font.ttf"
+        );
 
         let blank = QuestionsRaw::new("");
         assert!(blank.is_err(), "Empty HTML should return an error");
     }
 }
-

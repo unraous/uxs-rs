@@ -1,16 +1,16 @@
-mod deepseek;
 mod bigmodel;
+mod deepseek;
 mod google;
+mod local_ollama;
 mod moonshot;
 mod openai;
 mod openrouter;
-mod local_ollama;
 
 use super::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 const SYSTEM_PROMPT: &str = include_str!("./system_prompt.txt");
 
@@ -36,8 +36,11 @@ pub trait LLM {
 }
 
 pub fn validate(model: &str, questions: &[Question]) -> Result<()> {
-    if questions.is_empty() { anyhow::bail!("接收到空的题目列表"); }
-    if model.is_empty() { anyhow::bail!("未选择 AI 模型"); }
+    if questions.is_empty() {
+        anyhow::bail!("接收到空的题目列表");
+    }
+    if model.is_empty() {
+        anyhow::bail!("未选择 AI 模型");
+    }
     Ok(())
 }
-

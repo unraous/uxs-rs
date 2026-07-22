@@ -1,10 +1,8 @@
-
-use serde::{Serialize, Deserialize};
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::io::Error;
 use log::error;
-
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::io::Error;
+use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
@@ -21,8 +19,9 @@ fn cwd() -> PathBuf {
 }
 
 fn cwd_parent() -> PathBuf {
-    cwd().parent()
-        .map(Path::to_path_buf) 
+    cwd()
+        .parent()
+        .map(Path::to_path_buf)
         .ok_or(Error::other("No parent directory"))
         .unwrap_or_else(|e| {
             error!("Failed to get parent directory: {}", e);
@@ -44,9 +43,7 @@ impl Default for PathsConfig {
                 ("data".into(), data_dir()),
                 ("logs".into(), data_dir().join("logs")),
             ]),
-            files: HashMap::from([
-                ("config".into(), data_dir().join("config.toml")),
-            ]),
+            files: HashMap::from([("config".into(), data_dir().join("config.toml"))]),
         }
     }
 }
@@ -64,4 +61,3 @@ impl PathsConfig {
         Ok(())
     }
 }
-

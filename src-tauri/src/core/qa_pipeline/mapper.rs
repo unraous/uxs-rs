@@ -8,38 +8,41 @@ fn create_maps(font: &[u8]) -> HashMap<char, char> {
     let mut maps = HashMap::new();
     let glyphs = render_glyphs(font).unwrap_or_default();
     log::debug!("成功渲染 {} 个字形", glyphs.len());
-    
+
     for glyph in glyphs {
         maps.insert(
-            glyph.original_char, 
-            CRNN_MODEL.predict(glyph.image)
-                .unwrap_or_default().chars().next()
-                .unwrap_or('?')
+            glyph.original_char,
+            CRNN_MODEL
+                .predict(glyph.image)
+                .unwrap_or_default()
+                .chars()
+                .next()
+                .unwrap_or('?'),
         );
     }
     maps
 }
 
 fn map(text: &str, maps: &HashMap<char, char>) -> String {
-    text.chars().map(|c| {
-        maps.get(&c).cloned().unwrap_or(c)
-    }).collect()
+    text.chars()
+        .map(|c| maps.get(&c).cloned().unwrap_or(c))
+        .collect()
 }
 
 pub fn decrypt(questions: QuestionsRaw) -> Vec<Question> {
     if let Some(font_data) = questions.font {
         log::info!("检测到加密字体，正在尝试解密...");
         let maps = create_maps(&font_data);
-        questions.questions.into_iter().map(|q| {
-            Question {
+        questions
+            .questions
+            .into_iter()
+            .map(|q| Question {
                 id: map(&q.id, &maps),
                 qtype: map(&q.qtype, &maps),
                 stem: map(&q.stem, &maps),
-                options: q.options.into_iter()
-                    .map(|opt| map(&opt, &maps))
-                    .collect(),
-            }
-        }).collect()
+                options: q.options.into_iter().map(|opt| map(&opt, &maps)).collect(),
+            })
+            .collect()
     } else {
         log::info!("未检测到加密字体，跳过解密步骤");
         questions.questions
@@ -49,8 +52,8 @@ pub fn decrypt(questions: QuestionsRaw) -> Vec<Question> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
     use serde_json::to_value;
+    use std::collections::HashMap;
 
     #[test]
     fn test_map_basic() {
@@ -84,7 +87,10 @@ mod tests {
         };
 
         let questions = vec![q1.clone(), q2.clone()];
-        let raw = QuestionsRaw { questions: questions.clone(), font: None };
+        let raw = QuestionsRaw {
+            questions: questions.clone(),
+            font: None,
+        };
         let decrypted = decrypt(raw);
 
         let expected = to_value(&questions).expect("serialize expected failed");

@@ -1,9 +1,8 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
 pub struct OptionsConfig {
-    pub launch_option: u8,
     pub force_speed: bool,
     pub speed: u8,
 }
@@ -11,7 +10,6 @@ pub struct OptionsConfig {
 impl Default for OptionsConfig {
     fn default() -> Self {
         Self {
-            launch_option: 1,
             force_speed: false,
             speed: 2,
         }

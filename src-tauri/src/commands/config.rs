@@ -1,5 +1,4 @@
-use crate::config::llm::LLMProvider;
-use crate::config::CONFIG;
+use crate::config::{llm::LLMProvider, options::OptionsConfig, CONFIG};
 use strum::IntoEnumIterator;
 
 // Get application metadata such as version and author information.
@@ -11,8 +10,16 @@ pub fn metadata(key: String) -> String {
         "author" => CONFIG.metadata.author.clone(),
         _ => "unknown".to_string(),
     };
-    log::debug!("成功获取元数据 [{}]: {}", key, res);
+    log::info!("成功获取元数据 [{}]: {}", key, res);
     res
+}
+
+#[tauri::command]
+pub fn options() -> &'static OptionsConfig {
+    log::debug!("正在获取配置信息...");
+    log::info!("成功获取配置信息: {:?}", CONFIG.options);
+
+    &CONFIG.options
 }
 
 // Get the list of available LLM providers.
@@ -22,7 +29,7 @@ pub fn providers() -> Vec<String> {
     let providers: Vec<String> = LLMProvider::iter()
         .map(|p| p.as_ref().to_string())
         .collect();
-    log::debug!("成功获取 AI Provider 列表: {:?}", providers);
+    log::info!("成功获取 AI Provider 列表: {:?}", providers);
     providers
 }
 
@@ -40,7 +47,7 @@ pub fn switch_provider(provider: String) -> bool {
     log::debug!("正在切换 AI Provider 到 [{}]", provider);
     if let Ok(llmp) = provider.parse::<LLMProvider>() {
         CONFIG.llm.switch_to(llmp);
-        log::debug!("成功切换 AI Provider 到 [{}]", provider);
+        log::info!("成功切换 AI Provider 到 [{}]", provider);
         true
     } else {
         log::error!("无效的 AI Provider [{}]", provider);
@@ -53,7 +60,7 @@ pub fn switch_provider(provider: String) -> bool {
 pub fn models() -> Vec<String> {
     log::debug!("正在获取可用模型列表...");
     let models = CONFIG.llm.current().available_models();
-    log::debug!("成功获取模型列表: {:?}", models);
+    log::info!("成功获取模型列表: {:?}", models);
     models
 }
 
@@ -72,7 +79,7 @@ pub fn current_model() -> String {
 pub fn switch_model(model: String) {
     log::debug!("正在切换模型到 [{}]...", model);
     CONFIG.llm.current().switch_model(&model);
-    log::debug!("成功切换模型到 [{}]", model);
+    log::info!("成功切换模型到 [{}]", model);
 }
 
 #[tauri::command]
@@ -88,7 +95,7 @@ pub fn api_key() -> String {
 pub fn set_key(key: String) {
     log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
     CONFIG.llm.current().set_key(&key);
-    log::debug!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
+    log::info!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
     save_config();
 }
 
@@ -98,6 +105,6 @@ pub fn save_config() {
     if let Err(e) = CONFIG.save() {
         log::error!("保存配置文件失败: {}", e);
     } else {
-        log::debug!("成功保存配置文件");
+        log::info!("成功保存配置文件");
     }
 }

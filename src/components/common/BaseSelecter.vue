@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import BaseLabel from './BaseLabel.vue';
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     modelValue: number; 
     label: string;

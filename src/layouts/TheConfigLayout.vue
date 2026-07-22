@@ -1,13 +1,12 @@
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import BaseButton from '@/components/common/BaseButton.vue';
 import TheAPIPanel from '@/components/TheAPIPanel.vue';
-
-const apiPanelRef = ref<InstanceType<typeof TheAPIPanel> | null>(null);
+import TheCourseConfigPanel from '@/components/TheCourseConfigPanel.vue';
+import { invoke } from '@tauri-apps/api/core';
 
 const saveConfig = async () => {
-  await apiPanelRef.value?.saveConfig();
+  await invoke('save_config');
 }
 </script>
 
@@ -16,7 +15,7 @@ const saveConfig = async () => {
     <h1 class="title">Configuration</h1>
     <div class="info-panel">
       <TheAPIPanel ref="apiPanelRef" />
-      <div class="course-settings-panel"></div>
+      <TheCourseConfigPanel ref="courseConfigPanelRef" />
     </div>
     <div class="save-button" @click="saveConfig">
       <BaseButton label="Save" style="width: 25%;" />
@@ -44,6 +43,8 @@ const saveConfig = async () => {
 .info-panel {
   height: 55%;
   flex: 1;
+  display: flex;
+  gap: 16px;
   flex-direction: row;
 }
 

@@ -3,7 +3,7 @@ import xIconRaw from '@/assets/x.svg?raw';
 import mIconRaw from '@/assets/-.svg?raw';
 import { invoke } from '@tauri-apps/api/core';
 
-const appTitle = 'uxuescript'; 
+const appTitle = 'uXueScript'; 
 
 const minimizeApp = () => {
   invoke('minimize').catch(e => {

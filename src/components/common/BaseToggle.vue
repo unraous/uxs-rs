@@ -82,7 +82,7 @@ onUnmounted(() => timer && clearTimeout(timer));
   display: flex;
   align-items: center;
   width: 100%;
-  margin-bottom: 1.5rem;
+  height: 48px;
 }
 
 .input-section {

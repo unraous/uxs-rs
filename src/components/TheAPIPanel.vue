@@ -10,24 +10,38 @@ const model = ref(0);
 const models = ref<string[]>([]);
 const apiKey = ref('');
 
+
 const loadProvider = async () => {
+  if (providers.value.length === 0) {
+    console.error('Provider 列表为空');
+    return;
+  }
+
   await invoke('switch_provider', { provider: providers.value[provider.value] });
-  models.value = await invoke('models') as string[];
-  const currentModel = await invoke('current_model') as string;
-  console.log('Current model:', currentModel);
-  model.value = models.value.includes(currentModel) ? models.value.indexOf(currentModel) : 0;
-  apiKey.value = await invoke('api_key') as string;
+  const [fetchedModels, currentModel, fetchedApiKey] = await Promise.all([
+    invoke('models') as Promise<string[]>,
+    invoke('current_model') as Promise<string>,
+    invoke('api_key') as Promise<string>
+  ]);
+  models.value = fetchedModels;
+  model.value = fetchedModels.includes(currentModel) ? fetchedModels.indexOf(currentModel) : 0;
+  apiKey.value = fetchedApiKey;
 };
 
-const saveConfig = async () => {
-  await invoke('set_key', { key: apiKey.value });
-};
 
 onMounted(async () => {
-  providers.value = await invoke('providers') as string[];
-  const currentProvider = await invoke('current_provider') as string;
-  provider.value = providers.value.includes(currentProvider) ? providers.value.indexOf(currentProvider) : 0;
-  await loadProvider();
+  const [fetchedProviders, currentProvider] = await Promise.all([
+    invoke('providers') as Promise<string[]>,
+    invoke('current_provider') as Promise<string>
+  ]);
+  providers.value = fetchedProviders;
+  
+  const targetProviderIndex = fetchedProviders.includes(currentProvider) ? fetchedProviders.indexOf(currentProvider) : 0;
+  if (provider.value === targetProviderIndex) {
+    await loadProvider();
+  } else {
+    provider.value = targetProviderIndex;
+  }
 });
 
 watch(provider, loadProvider);
@@ -37,7 +51,6 @@ watch(model, async () => {
 });
 
 
-defineExpose({ saveConfig });
 </script>
 
 <template>
@@ -46,7 +59,7 @@ defineExpose({ saveConfig });
     <div class="settings-container">
       <BaseSelecter v-model="provider" label="Provider" :options="providers" />
       <BaseSelecter v-model="model" label="Model" :options="models" />
-      <BaseInput v-model="apiKey" label="API Key" />
+      <BaseInput v-model="apiKey" label="API Key" @change="invoke('set_key', { key: apiKey })" />
     </div>
   </div>
 </template>
@@ -65,15 +78,14 @@ defineExpose({ saveConfig });
   display: flex;
   gap: 48px;
   flex-direction: column;
-  justify-content: center;
 }
   
 .title {
   display: flex;
   height: 48px;
   font-size: 1.5rem;
-  align-items: center;      /* 垂直居中 */
-  justify-content: center;   /* 水平居中 */
+  align-items: center;
+  justify-content: center;   
 }
 
 

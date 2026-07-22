@@ -3,12 +3,13 @@ import BaseTextBox from './BaseTextBox.vue';
 import BaseLabel from './BaseLabel.vue';
 
 defineProps<{
-  modelValue: string;
+  modelValue: any;
   label: string;
   placeholder?: string;
+  pattern?: string;
 }>();
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'change']);
 </script>
 
 <template>
@@ -19,7 +20,9 @@ const emit = defineEmits(['update:modelValue']);
       <BaseTextBox 
         :modelValue="modelValue" 
         :placeholder="placeholder"
+        :pattern="pattern"
         @update:modelValue="emit('update:modelValue', $event)" 
+        @change="emit('change', $event)"
       />
     </div>
   </div>

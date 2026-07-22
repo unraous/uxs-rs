@@ -48,5 +48,8 @@ reqwest = { version = "0.13.4", features = ["json"] }
 dotenv = "0.15.0"
 parking_lot = { version = "0.12.5", features = ["serde"] }
 strum = { version = "0.28.0", features = ["derive"] }
+auto_handler = { path = "./crates/auto_handler" }
 
 [workspace]
+members = ["crates/auto_handler"]
+

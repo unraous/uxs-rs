@@ -1,5 +1,5 @@
-use crate::config::CONFIG;
 use crate::config::llm::LLMProvider;
+use crate::config::CONFIG;
 use strum::IntoEnumIterator;
 
 // Get application metadata such as version and author information.
@@ -19,7 +19,9 @@ pub fn metadata(key: String) -> String {
 #[tauri::command]
 pub fn providers() -> Vec<String> {
     log::debug!("正在获取可用 AI Provider 列表...");
-    let providers: Vec<String> = LLMProvider::iter().map(|p| p.as_ref().to_string()).collect();
+    let providers: Vec<String> = LLMProvider::iter()
+        .map(|p| p.as_ref().to_string())
+        .collect();
     log::debug!("成功获取 AI Provider 列表: {:?}", providers);
     providers
 }
@@ -58,7 +60,10 @@ pub fn models() -> Vec<String> {
 // Get the current model for the current LLM provider.
 #[tauri::command]
 pub fn current_model() -> String {
-    log::debug!("当正在获取当前模型: {}", CONFIG.llm.current().current_model());
+    log::debug!(
+        "当正在获取当前模型: {}",
+        CONFIG.llm.current().current_model()
+    );
     CONFIG.llm.current().current_model()
 }
 
@@ -78,13 +83,21 @@ pub fn api_key() -> String {
     key
 }
 
-// Set the API key for the current LLM provider. 
+// Set the API key for the current LLM provider.
 #[tauri::command]
 pub fn set_key(key: String) {
     log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
     CONFIG.llm.current().set_key(&key);
-    CONFIG.save().unwrap_or_else(|e| {
-        log::error!("保存配置文件失败: {}", e);
-    });
     log::debug!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
+    save_config();
+}
+
+#[tauri::command]
+pub fn save_config() {
+    log::debug!("正在保存配置文件...");
+    if let Err(e) = CONFIG.save() {
+        log::error!("保存配置文件失败: {}", e);
+    } else {
+        log::debug!("成功保存配置文件");
+    }
 }

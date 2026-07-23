@@ -9,16 +9,16 @@ use metadata::MetadataConfig;
 use options::OptionsConfig;
 use path::PathsConfig;
 
-use std::sync::LazyLock;
-
+use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
+use std::sync::LazyLock;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(default)]
 pub struct Config {
     pub metadata: MetadataConfig,
     pub paths: PathsConfig,
-    pub options: OptionsConfig,
+    pub options: Mutex<OptionsConfig>,
     pub llm: LLMConfig,
 }
 

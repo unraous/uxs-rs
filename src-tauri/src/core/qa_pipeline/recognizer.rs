@@ -7,24 +7,22 @@
 //! for processing images containing Chinese text.
 
 use anyhow::{bail, Result};
+use bytemuck::cast_slice;
 use image::DynamicImage;
 use std::sync::LazyLock;
-use tract_onnx::prelude::*;
+use tract::prelude::*;
 
-pub struct CRNNHandle {
-    model: TypedRunnableModel<TypedModel>,
+pub struct CrnnEngine {
+    model: Runnable,
     labels: Vec<&'static str>,
 }
 
-impl Default for CRNNHandle {
+impl Default for CrnnEngine {
     fn default() -> Self {
-        let model = (|| -> Result<TypedRunnableModel<TypedModel>> {
-            let model = tract_onnx::onnx()
-                .model_for_read(&mut std::io::Cursor::new(include_bytes!(
-                    "../../../model/chineseocr_lite.onnx"
-                )))?
-                .into_typed()?
-                .into_optimized()?
+        let model = (|| -> Result<Runnable> {
+            let model = tract::onnx()?
+                .load_buffer(include_bytes!("../../../model/chineseocr_lite.onnx"))?
+                .into_model()?
                 .into_runnable()?;
             Ok(model)
         })()
@@ -34,11 +32,11 @@ impl Default for CRNNHandle {
 
         let labels = include_str!("../../../model/keys.txt").lines().collect();
 
-        CRNNHandle { model, labels }
+        CrnnEngine { model, labels }
     }
 }
 
-impl CRNNHandle {
+impl CrnnEngine {
     fn decode_output(&self, indices: &[usize], length: usize) -> Result<String> {
         let mut output = String::new();
         for i in 0..length {
@@ -56,7 +54,7 @@ impl CRNNHandle {
         let (w, h) = img_rgb.dimensions();
 
         if w == 0 || h == 0 {
-            bail!("图片尺寸异常，无法进行 OCR 识别。");
+            bail!("图片为空，无法进行 OCR 识别。");
         }
 
         let scale = h as f32 / 32.0;
@@ -80,12 +78,15 @@ impl CRNNHandle {
             }
         }
 
-        let input = Tensor::from_shape(&[1, 3, 32, new_w as usize], &data_bchw)?;
-        let outputs = self.model.run(tvec![input.into()])?;
-        let pred_tensor = &outputs[0];
+        let input = Tensor::from_bytes(
+            DatumType::F32,
+            &[1, 3, 32, new_w as usize],
+            cast_slice(&data_bchw),
+        )?;
+        let pred_tensor = &self.model.run([input])?[0];
 
-        let pred_data = pred_tensor.as_slice::<f32>()?;
-        let shape = pred_tensor.shape();
+        let (_dt, shape, raw_bytes) = pred_tensor.as_bytes()?;
+        let pred_data: &[f32] = cast_slice(raw_bytes);
 
         let seq_len = shape[0];
         let num_classes = shape[2];
@@ -108,4 +109,4 @@ impl CRNNHandle {
     }
 }
 
-pub static CRNN_MODEL: LazyLock<CRNNHandle> = LazyLock::new(CRNNHandle::default);
+pub static CRNN: LazyLock<CrnnEngine> = LazyLock::new(CrnnEngine::default);

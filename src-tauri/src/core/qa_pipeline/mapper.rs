@@ -1,46 +1,49 @@
 use std::collections::HashMap;
 
 use super::html::{HtmlExtractPayload, Question};
-use super::recognizer::CRNN_MODEL;
+use super::recognizer::CRNN;
 use super::render::render_glyphs;
 
-fn create_maps(font: &[u8]) -> HashMap<char, char> {
-    let mut maps = HashMap::new();
+fn map_font(font: &[u8]) -> HashMap<char, char> {
+    let mut font_map = HashMap::new();
     let glyphs = render_glyphs(font).unwrap_or_default();
     log::debug!("成功渲染 {} 个字形", glyphs.len());
 
     for glyph in glyphs {
-        maps.insert(
+        font_map.insert(
             glyph.original_char,
-            CRNN_MODEL
-                .predict(glyph.image)
+            CRNN.predict(glyph.image)
                 .unwrap_or_default()
                 .chars()
                 .next()
                 .unwrap_or('?'),
         );
     }
-    maps
+    font_map
 }
 
-fn map(text: &str, maps: &HashMap<char, char>) -> String {
+fn map(text: &str, font_map: &HashMap<char, char>) -> String {
     text.chars()
-        .map(|c| maps.get(&c).cloned().unwrap_or(c))
+        .map(|c| font_map.get(&c).cloned().unwrap_or(c))
         .collect()
 }
 
 pub fn decrypt(payload: HtmlExtractPayload) -> Vec<Question> {
     if let Some(font_data) = payload.font {
         log::info!("检测到加密字体，正在尝试解密...");
-        let maps = create_maps(&font_data);
+        let font_map = map_font(&font_data);
         payload
             .questions
             .into_iter()
             .map(|q| Question {
-                id: map(&q.id, &maps),
-                qtype: map(&q.qtype, &maps),
-                stem: map(&q.stem, &maps),
-                options: q.options.into_iter().map(|opt| map(&opt, &maps)).collect(),
+                id: map(&q.id, &font_map),
+                kind: map(&q.kind, &font_map),
+                stem: map(&q.stem, &font_map),
+                options: q
+                    .options
+                    .into_iter()
+                    .map(|opt| map(&opt, &font_map))
+                    .collect(),
             })
             .collect()
     } else {
@@ -57,17 +60,17 @@ mod tests {
 
     #[test]
     fn test_map_basic() {
-        let mut maps = HashMap::new();
-        maps.insert('a', 'x');
-        maps.insert('b', 'y');
-        let out = map("abc", &maps);
+        let mut font_map = HashMap::new();
+        font_map.insert('a', 'x');
+        font_map.insert('b', 'y');
+        let out = map("abc", &font_map);
         assert_eq!(out, "xyc");
     }
 
     #[test]
     fn test_map_unmapped_chars_unchanged() {
-        let maps = HashMap::new();
-        let out = map("héllo", &maps);
+        let font_map = HashMap::new();
+        let out = map("héllo", &font_map);
         assert_eq!(out, "héllo");
     }
 
@@ -75,13 +78,13 @@ mod tests {
     fn test_decrypt_no_font_returns_same_questions() {
         let q1 = Question {
             id: "1".into(),
-            qtype: "single".into(),
+            kind: "single".into(),
             stem: "What is 1+1?".into(),
             options: vec!["A. 1".into(), "B. 2".into()],
         };
         let q2 = Question {
             id: "2".into(),
-            qtype: "multi".into(),
+            kind: "multi".into(),
             stem: "Choose colors".into(),
             options: vec!["Red".into(), "Blue".into()],
         };

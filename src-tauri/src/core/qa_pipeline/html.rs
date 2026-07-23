@@ -10,7 +10,7 @@ pub struct Question {
     #[serde(rename = "题号")]
     pub id: String,
     #[serde(rename = "题型")]
-    pub qtype: String,
+    pub kind: String,
     #[serde(rename = "题干")]
     pub stem: String,
     #[serde(rename = "选项")]
@@ -69,7 +69,7 @@ fn extract_questions(html: &str) -> Vec<Question> {
         .enumerate()
         .map(|(idx, qelem)| Question {
             id: select_text(&qelem, "i.fl").unwrap_or_else(|| (idx + 1).to_string()),
-            qtype: select_text(&qelem, "span.newZy_TItle").unwrap_or_default(),
+            kind: select_text(&qelem, "span.newZy_TItle").unwrap_or_default(),
             stem: select_text(&qelem, "div.fontLabel").unwrap_or_default(),
             options: select_options(&qelem),
         })

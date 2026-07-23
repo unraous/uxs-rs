@@ -15,11 +15,11 @@ pub fn metadata(key: String) -> String {
 }
 
 #[tauri::command]
-pub fn options() -> &'static OptionsConfig {
+pub fn options() -> OptionsConfig {
     log::debug!("正在获取配置信息...");
-    log::info!("成功获取配置信息: {:?}", CONFIG.options);
-
-    &CONFIG.options
+    let options = *CONFIG.options.lock();
+    log::info!("成功获取配置信息: {:?}", options);
+    options
 }
 
 // Get the list of available LLM providers.

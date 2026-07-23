@@ -18,7 +18,7 @@ pub struct Question {
 }
 
 #[derive(Debug, Clone)]
-pub struct QuestionsRaw {
+pub struct HtmlExtractPayload {
     pub questions: Vec<Question>,
     pub font: Option<Vec<u8>>,
 }
@@ -76,7 +76,7 @@ fn extract_questions(html: &str) -> Vec<Question> {
         .collect()
 }
 
-impl QuestionsRaw {
+impl HtmlExtractPayload {
     pub fn new(html: &str) -> Result<Self> {
         let font = extract_font(html);
         let questions = extract_questions(html);
@@ -95,7 +95,7 @@ mod tests {
     #[test]
     fn test_extraction() {
         let html = include_str!("../../../tests/assets/course-page/webpage.html");
-        let raw = QuestionsRaw::new(html).expect("Failed to parse HTML");
+        let raw = HtmlExtractPayload::new(html).expect("Failed to parse HTML");
 
         let expected_json: serde_json::Value = serde_json::from_str(include_str!(
             "../../../tests/assets/course-page/questions.json"
@@ -116,7 +116,7 @@ mod tests {
             "Extracted font bytes differ from cxs-font.ttf"
         );
 
-        let blank = QuestionsRaw::new("");
+        let blank = HtmlExtractPayload::new("");
         assert!(blank.is_err(), "Empty HTML should return an error");
     }
 }

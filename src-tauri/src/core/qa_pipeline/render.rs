@@ -1,6 +1,6 @@
+use anyhow::Result;
 use fontdue::Font;
 use image::DynamicImage;
-use std::result::Result;
 use ttf_parser::Face;
 
 #[derive(Clone)]
@@ -26,9 +26,10 @@ fn codepoint(glyph_id: u16, cmap: ttf_parser::cmap::Table) -> Option<u32> {
     None
 }
 
-pub fn render_glyphs(font_data: &[u8]) -> Result<Vec<GlyphImage>, Box<dyn std::error::Error>> {
+pub fn render_glyphs(font_data: &[u8]) -> Result<Vec<GlyphImage>> {
     let face = Face::parse(font_data, 0)?;
-    let font = Font::from_bytes(font_data, fontdue::FontSettings::default())?;
+    let font = Font::from_bytes(font_data, fontdue::FontSettings::default())
+        .map_err(|e| anyhow::anyhow!(e))?;
 
     let mut results = Vec::new();
 

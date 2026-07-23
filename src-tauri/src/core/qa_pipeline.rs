@@ -4,7 +4,7 @@ pub mod mapper;
 pub mod recognizer;
 pub mod render;
 
-use html::QuestionsRaw;
+use html::HtmlExtractPayload;
 use llm::AnswerItem;
 use mapper::decrypt;
 
@@ -15,7 +15,7 @@ use anyhow::Result;
 /// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
 /// solves them via the active LLM configured in CONFIG, and returns the solved AnswerItems.
 pub async fn execute_qa_workflow(html: &str) -> Result<Vec<AnswerItem>> {
-    let decrypted = decrypt(QuestionsRaw::new(html)?);
+    let decrypted = decrypt(HtmlExtractPayload::new(html)?);
     CONFIG.llm.current().solve(decrypted).await
 }
 
@@ -38,8 +38,9 @@ mod tests {
         let html_content = fs::read_to_string(&path)
             .unwrap_or_else(|_| panic!("Failed to find test webpage.html at {:?}", path));
 
-        let raw = QuestionsRaw::new(&html_content).expect("Failed to parse HTML questions");
-        let decrypted = decrypt(raw);
+        let payload =
+            HtmlExtractPayload::new(&html_content).expect("Failed to parse HTML questions");
+        let decrypted = decrypt(payload);
         assert!(!decrypted.is_empty(), "解密后的题目列表不应为空");
 
         let local_solver = BigModelConfig {

@@ -9,16 +9,6 @@ const lockPlayingSpeed = ref(false);
 const playingSpeed = ref(1.0);
 
 
-
-
-const saveConfig = async () => {
-  
-};
-
-
-
-
-defineExpose({ saveConfig });
 </script>
 
 <template>

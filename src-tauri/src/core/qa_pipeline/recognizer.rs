@@ -6,6 +6,7 @@
 //! This implementation provides character-level recognition capabilities
 //! for processing images containing Chinese text.
 
+use anyhow::{bail, Result};
 use image::DynamicImage;
 use std::sync::LazyLock;
 use tract_onnx::prelude::*;
@@ -17,7 +18,7 @@ pub struct CRNNHandle {
 
 impl Default for CRNNHandle {
     fn default() -> Self {
-        let model = (|| -> Result<TypedRunnableModel<TypedModel>, Box<dyn std::error::Error>> {
+        let model = (|| -> Result<TypedRunnableModel<TypedModel>> {
             let model = tract_onnx::onnx()
                 .model_for_read(&mut std::io::Cursor::new(include_bytes!(
                     "../../../model/chineseocr_lite.onnx"
@@ -27,7 +28,7 @@ impl Default for CRNNHandle {
                 .into_runnable()?;
             Ok(model)
         })()
-        .expect("致命错误：无法初始化 CRNN OCR 模型。请检查模型文件是否完整或硬件环境。");
+        .expect("无法初始化 CRNN OCR 模型。请检查模型文件是否完整或硬件环境。");
 
         log::debug!("CRNN 模型与标签加载成功");
 
@@ -38,11 +39,7 @@ impl Default for CRNNHandle {
 }
 
 impl CRNNHandle {
-    fn decode_output(
-        &self,
-        indices: &[usize],
-        length: usize,
-    ) -> Result<String, Box<dyn std::error::Error>> {
+    fn decode_output(&self, indices: &[usize], length: usize) -> Result<String> {
         let mut output = String::new();
         for i in 0..length {
             if indices[i] != 0 && !(i > 0 && indices[i - 1] == indices[i]) {
@@ -54,12 +51,12 @@ impl CRNNHandle {
         Ok(output)
     }
 
-    pub fn predict(&self, image: DynamicImage) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn predict(&self, image: DynamicImage) -> Result<String> {
         let img_rgb = image.to_rgb8();
         let (w, h) = img_rgb.dimensions();
 
         if w == 0 || h == 0 {
-            return Err("图片尺寸异常，无法进行 OCR 识别。".into());
+            bail!("图片尺寸异常，无法进行 OCR 识别。");
         }
 
         let scale = h as f32 / 32.0;

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::html::{Question, QuestionsRaw};
+use super::html::{HtmlExtractPayload, Question};
 use super::recognizer::CRNN_MODEL;
 use super::render::render_glyphs;
 
@@ -29,11 +29,11 @@ fn map(text: &str, maps: &HashMap<char, char>) -> String {
         .collect()
 }
 
-pub fn decrypt(questions: QuestionsRaw) -> Vec<Question> {
-    if let Some(font_data) = questions.font {
+pub fn decrypt(payload: HtmlExtractPayload) -> Vec<Question> {
+    if let Some(font_data) = payload.font {
         log::info!("检测到加密字体，正在尝试解密...");
         let maps = create_maps(&font_data);
-        questions
+        payload
             .questions
             .into_iter()
             .map(|q| Question {
@@ -45,7 +45,7 @@ pub fn decrypt(questions: QuestionsRaw) -> Vec<Question> {
             .collect()
     } else {
         log::info!("未检测到加密字体，跳过解密步骤");
-        questions.questions
+        payload.questions
     }
 }
 
@@ -87,11 +87,11 @@ mod tests {
         };
 
         let questions = vec![q1.clone(), q2.clone()];
-        let raw = QuestionsRaw {
+        let payload = HtmlExtractPayload {
             questions: questions.clone(),
             font: None,
         };
-        let decrypted = decrypt(raw);
+        let decrypted = decrypt(payload);
 
         let expected = to_value(&questions).expect("serialize expected failed");
         let actual = to_value(&decrypted).expect("serialize actual failed");
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn test_decrypt_flow() {
         let html = include_str!("../../../tests/assets/course-page/webpage.html");
-        let raw = QuestionsRaw::new(html).expect("Failed to parse HTML");
+        let raw = HtmlExtractPayload::new(html).expect("Failed to parse HTML");
         let decrypted = decrypt(raw);
         println!("Decrypted questions: {:#?}", decrypted);
 

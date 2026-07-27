@@ -6,7 +6,7 @@ pub mod ollama;
 pub mod openai;
 pub mod openrouter;
 
-use crate::core::qa_pipeline::llm::LLM;
+use crate::core::quiz::llm::LLM;
 
 use bigmodel::BigModelConfig;
 use deepseek::DeepSeekConfig;

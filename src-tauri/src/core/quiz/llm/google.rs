@@ -1,13 +1,14 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::openrouter::OpenrouterConfig;
-use crate::core::qa_pipeline::html::Question;
+use crate::config::llm::google::GoogleConfig;
+use crate::core::quiz::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
+use serde_json::json;
 
 #[async_trait]
-impl LLM for OpenrouterConfig {
+impl LLM for GoogleConfig {
     fn api_key(&self) -> String {
         self.api_key.lock().clone()
     }
@@ -25,40 +26,44 @@ impl LLM for OpenrouterConfig {
     }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
-        log::debug!(
-            "将使用 Openrouter 模型 {} 进行推理",
-            *self.chosen_model.lock()
-        );
-
-        let request_body = serde_json::json!({
-            "model": *self.chosen_model.lock(),
-            "messages": [
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT
-                },
-                {
-                    "role": "user",
-                    "content": serde_json::to_string(&question)?
-                }
-            ],
+        log::debug!("将使用 Google 模型 {} 进行推理", *self.chosen_model.lock());
+        // see reference: https://ai.google.dev/gemini-api/docs/text-generation?hl=zh-cn#rest
+        // the mimeType is not string but enum, so need to use ""APPLICATION_JSON"" instead of "application/json"
+        let mut body: serde_json::Value =
+            serde_json::from_str(include_str!("./google-request.json"))?;
+        body["contents"] = json!([{
+            "parts": [{ "text": serde_json::to_string(&question)? }]
+        }]);
+        body["systemInstruction"] = json!({
+            "parts": [{ "text": SYSTEM_PROMPT }]
         });
 
         let response = reqwest::Client::new()
-            .post("https://openrouter.ai/api/v1/chat/completions")
-            .header("Authorization", format!("Bearer {}", self.api_key.lock()))
+            .post(format!(
+                "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent",
+                *self.chosen_model.lock()
+            ))
+            .header("x-goog-api-key", format!("{}", self.api_key.lock()))
             .header("Content-Type", "application/json")
-            .json(&request_body)
+            .json(&body)
             .send()
             .await?;
 
-        // 解析响应
+        if !response.status().is_success() {
+            anyhow::bail!(
+                "Google API 错误 ({}): {}",
+                response.status().as_str(),
+                response.text().await?
+            )
+        }
+
         let data: serde_json::Value = response.json().await?;
         let content = data
-            .pointer("/choices/0/message/content")
+            .pointer("/candidates/0/content/parts/0/text")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("无法从 Openrouter 响应提取文本。原始响应: {}", data))?;
-        Ok(serde_json::from_str(content)?)
+            .ok_or_else(|| anyhow::anyhow!("无法从 Google 响应提取文本。原始响应: {}", data))?;
+
+        Ok(serde_json::from_str::<Vec<AnswerItem>>(content)?)
     }
 }
 
@@ -84,15 +89,12 @@ mod tests {
 
         dotenv::dotenv().ok();
 
-        // 从环境变量 OPENROUTER_API_KEY 读取，如果不存在则报错
-        let api_key = parking_lot::Mutex::new(
-            std::env::var("OPENROUTER_API_KEY")
-                .expect("请在 .env 文件或环境变量中设置 OPENROUTER_API_KEY"),
-        );
+        // 从环境变量 GOOGLE_API_KEY 读取，如果不存在则报错
+        let api_key =
+            std::env::var("GOOGLE_API_KEY").expect("请在 .env 文件或环境变量中设置 GOOGLE_API_KEY");
 
-        let config = OpenrouterConfig {
-            api_key,
-            chosen_model: parking_lot::Mutex::new(String::from("google/gemma-4-31b-it:free")),
+        let config = GoogleConfig {
+            api_key: parking_lot::Mutex::new(api_key),
             ..Default::default()
         };
 

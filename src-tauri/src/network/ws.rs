@@ -1,4 +1,4 @@
-use crate::core::qa_pipeline::execute_qa_workflow;
+use crate::core::quiz::execute_qa_workflow;
 
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};

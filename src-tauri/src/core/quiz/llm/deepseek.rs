@@ -1,18 +1,18 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::ollama::OllamaConfig;
-use crate::core::qa_pipeline::html::Question;
+use crate::config::llm::deepseek::DeepSeekConfig;
+use crate::core::quiz::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
-impl LLM for OllamaConfig {
+impl LLM for DeepSeekConfig {
     fn api_key(&self) -> String {
-        String::new()
-    } // Ollama has no API key, return empty string
-    fn set_key(&self, _key: &str) {
-        log::warn!("Ollama 无 API Key 可设置")
+        self.api_key.lock().clone()
+    }
+    fn set_key(&self, key: &str) {
+        *self.api_key.lock() = key.to_string();
     }
     fn available_models(&self) -> Vec<String> {
         self.models.clone()
@@ -26,12 +26,12 @@ impl LLM for OllamaConfig {
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!(
-            "将使用 Ollama 本地模型 {} 进行推理",
+            "将使用 DeepSeek 模型 {} 进行推理",
             *self.chosen_model.lock()
         );
 
         let request_body = serde_json::json!({
-            "model": *self.chosen_model.lock(),
+            "model": self.chosen_model,
             "messages": [
                 {
                     "role": "system",
@@ -42,26 +42,27 @@ impl LLM for OllamaConfig {
                     "content": serde_json::to_string(&question)?
                 }
             ],
-            "stream": false
+            "temperature": 0.3,
+            "top_p": 0.95,
+            "response_format": {
+                "type": "json_object"
+            }
         });
 
         let response = reqwest::Client::new()
-            .post("http://localhost:11434/api/chat")
+            .post("https://api.deepseek.com/chat/completions")
+            .header("Authorization", format!("Bearer {}", self.api_key.lock()))
+            .header("Content-Type", "application/json")
             .json(&request_body)
             .send()
             .await?;
 
-        if !response.status().is_success() {
-            anyhow::bail!("Ollama API error: {}", response.status());
-        }
-
         // 解析响应
         let data: serde_json::Value = response.json().await?;
         let content = data
-            .pointer("/message/content")
+            .pointer("/choices/0/message/content")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("无法从 Ollama 响应提取文本。原始响应: {}", data))?;
-
+            .ok_or_else(|| anyhow::anyhow!("无法从 DeepSeek 响应提取文本。原始响应: {}", data))?;
         Ok(serde_json::from_str(content)?)
     }
 }
@@ -86,8 +87,17 @@ mod tests {
 
         println!("成功加载了 {} 道题目", questions.len());
 
-        let mut config = OllamaConfig::default();
-        config.load_models().await;
+        dotenv::dotenv().ok();
+
+        // 从环境变量 DEEPSEEK_API_KEY 读取，如果不存在则报错
+        let api_key = std::env::var("DEEPSEEK_API_KEY")
+            .expect("请在 .env 文件或环境变量中设置 DEEPSEEK_API_KEY");
+
+        let config = DeepSeekConfig {
+            api_key: parking_lot::Mutex::new(api_key),
+            ..Default::default()
+        };
+
         match config.solve(questions.clone()).await {
             Ok(answers) => {
                 assert_eq!(answers.len(), questions.len());

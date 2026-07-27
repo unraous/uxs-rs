@@ -8,6 +8,7 @@ use walkdir::WalkDir;
 
 struct CommandEntry {
     path: syn::Path,
+    name: String,
     cfgs: Vec<syn::Attribute>,
 }
 
@@ -27,6 +28,7 @@ impl<'ast> Visit<'ast> for CommandVisitor {
 
         if is_command {
             let fn_name = &node.sig.ident;
+            let command_name = fn_name.to_string();
             let full_path = format!("crate::commands::{}::{}", self.module_name, fn_name);
             let cfgs: Vec<syn::Attribute> = node
                 .attrs
@@ -36,7 +38,7 @@ impl<'ast> Visit<'ast> for CommandVisitor {
                 .collect();
 
             if let Ok(path) = syn::parse_str::<syn::Path>(&full_path) {
-                self.commands.push(CommandEntry { path, cfgs });
+                self.commands.push(CommandEntry { path, name: command_name, cfgs });
             }
         }
 
@@ -47,71 +49,114 @@ impl<'ast> Visit<'ast> for CommandVisitor {
 #[proc_macro]
 pub fn generate_auto_handler(_input: TokenStream) -> TokenStream {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-    let commands_dir = PathBuf::from(manifest_dir).join("src").join("commands");
+    let manifest_path = PathBuf::from(&manifest_dir);
+
+    let commands_dir = if manifest_path.join("src").join("commands").exists() {
+        manifest_path.join("src").join("commands")
+    } else if manifest_path.join("..").join("src").join("commands").exists() {
+        manifest_path.join("..").join("src").join("commands")
+    } else {
+        manifest_path.join("..").join("..").join("src").join("commands")
+    };
 
     let mut all_command_tokens = Vec::new();
+    let mut all_command_names = Vec::new();
     let mut tracked_files = Vec::new();
 
-    for entry in WalkDir::new(&commands_dir)
-        .into_iter()
-        .filter_map(|e| e.ok())
-    {
-        let path = entry.path();
-        if !path.is_file() || path.extension().and_then(|s| s.to_str()) != Some("rs") {
-            continue;
-        }
-
-        tracked_files.push(path.to_string_lossy().into_owned());
-
-        // Derive module path from relative path: admin/users.rs → "admin::users"
-        let relative = match path.strip_prefix(&commands_dir) {
-            Ok(r) => r.with_extension(""),
-            Err(_) => continue,
-        };
-
-        let components: Vec<&str> = relative
-            .components()
-            .filter_map(|c| c.as_os_str().to_str())
-            .collect();
-
-        if components.is_empty() {
-            continue;
-        }
-
-        let module_name = components.join("::");
-
-        let content = match fs::read_to_string(path) {
-            Ok(c) => c,
-            Err(e) => {
-                let msg = format!("auto_handler: failed to read {}: {}", path.display(), e);
-                return syn::Error::new(proc_macro2::Span::call_site(), msg)
-                    .to_compile_error()
-                    .into();
+    if commands_dir.exists() {
+        for entry in WalkDir::new(&commands_dir)
+            .into_iter()
+            .filter_map(|e| e.ok())
+        {
+            let path = entry.path();
+            if !path.is_file() || path.extension().and_then(|s| s.to_str()) != Some("rs") {
+                continue;
             }
-        };
-        let syntax_tree = match syn::parse_file(&content) {
-            Ok(t) => t,
-            Err(e) => {
-                let msg = format!("auto_handler: failed to parse {}: {}", path.display(), e);
-                return syn::Error::new(proc_macro2::Span::call_site(), msg)
-                    .to_compile_error()
-                    .into();
+
+            tracked_files.push(path.to_string_lossy().into_owned());
+
+            let relative = match path.strip_prefix(&commands_dir) {
+                Ok(r) => r.with_extension(""),
+                Err(_) => continue,
+            };
+
+            let components: Vec<&str> = relative
+                .components()
+                .filter_map(|c| c.as_os_str().to_str())
+                .collect();
+
+            if components.is_empty() {
+                continue;
             }
-        };
 
-        let mut visitor = CommandVisitor {
-            module_name,
-            commands: Vec::new(),
-        };
-        visitor.visit_file(&syntax_tree);
+            let module_name = components.join("::");
 
-        for cmd in visitor.commands {
-            let path = &cmd.path;
-            let cfgs = &cmd.cfgs;
-            all_command_tokens.push(quote! {
-                #(#cfgs)*
-                #path
-            });
+            let content = match fs::read_to_string(path) {
+                Ok(c) => c,
+                Err(e) => {
+                    let msg = format!("auto_handler: failed to read {}: {}", path.display(), e);
+                    return syn::Error::new(proc_macro2::Span::call_site(), msg)
+                        .to_compile_error()
+                        .into();
+                }
+            };
+            let syntax_tree = match syn::parse_file(&content) {
+                Ok(t) => t,
+                Err(e) => {
+                    let msg = format!("auto_handler: failed to parse {}: {}", path.display(), e);
+                    return syn::Error::new(proc_macro2::Span::call_site(), msg)
+                        .to_compile_error()
+                        .into();
+                }
+            };
+
+            let mut visitor = CommandVisitor {
+                module_name,
+                commands: Vec::new(),
+            };
+            visitor.visit_file(&syntax_tree);
+
+            for cmd in visitor.commands {
+                let path = &cmd.path;
+                let cfgs = &cmd.cfgs;
+                all_command_names.push(cmd.name);
+                all_command_tokens.push(quote! {
+                    #(#cfgs)*
+                    #path
+                });
+            }
+        }
+    }
+
+    all_command_names.sort();
+    all_command_names.dedup();
+
+    // Automatically sync permissions/main-commands.json
+    let permissions_dir = if manifest_path.join("permissions").exists() {
+        manifest_path.join("permissions")
+    } else if manifest_path.join("..").join("permissions").exists() {
+        manifest_path.join("..").join("permissions")
+    } else {
+        manifest_path.join("..").join("..").join("permissions")
+    };
+
+    let perm_file = permissions_dir.join("main-commands.json");
+    if perm_file.exists() {
+        if let Ok(content) = fs::read_to_string(&perm_file) {
+            if let Ok(mut json) = serde_json::from_str::<serde_json::Value>(&content) {
+                if let Some(perm_array) = json.get_mut("permission").and_then(|p| p.as_array_mut()) {
+                    if let Some(first_perm) = perm_array.get_mut(0) {
+                        if let Some(commands_obj) = first_perm.get_mut("commands") {
+                            commands_obj["allow"] = serde_json::json!(all_command_names);
+                            if let Ok(new_content) = serde_json::to_string_pretty(&json) {
+                                if new_content != content {
+                                    let _ = fs::write(&perm_file, new_content);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

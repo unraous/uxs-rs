@@ -1,0 +1,10 @@
+[target.x86_64-pc-windows-msvc]
+linker = "lld-link.exe"
+rustflags = [
+    "-C",
+    "target-cpu=x86-64-v3",              # 完美解锁 275HX 的 AVX2/FMA 指令集
+    "-C",
+    "link-arg=/THREADS:16",              # 为 32GB 三星 DDR5 内存量身定制的防爆防卡顿线程上限
+    "-C",
+    "llvm-args=-enable-dfa-jump-thread",
+]

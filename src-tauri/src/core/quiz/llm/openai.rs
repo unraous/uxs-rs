@@ -1,13 +1,13 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::moonshot::MoonshotConfig;
-use crate::core::qa_pipeline::html::Question;
+use crate::config::llm::openai::OpenAIConfig;
+use crate::core::quiz::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
-impl LLM for MoonshotConfig {
+impl LLM for OpenAIConfig {
     fn api_key(&self) -> String {
         self.api_key.lock().clone()
     }
@@ -25,26 +25,16 @@ impl LLM for MoonshotConfig {
     }
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
-        log::debug!(
-            "将使用 Moonshot 模型 {} 进行推理",
-            *self.chosen_model.lock()
-        );
+        log::debug!("将使用 OpenAI 模型 {} 进行推理", *self.chosen_model.lock());
+
         let request_body = serde_json::json!({
             "model": *self.chosen_model.lock(),
-            "messages": [
-                {
-                    "role": "system",
-                    "content": SYSTEM_PROMPT
-                },
-                {
-                    "role": "user",
-                    "content": serde_json::to_string(&question)?
-                }
-            ],
+            "instructions": SYSTEM_PROMPT,
+            "input": serde_json::to_string(&question)?,
         });
 
         let response = reqwest::Client::new()
-            .post("https://api.moonshot.cn/v1/chat/completions")
+            .post("https://api.openai.com/v1/responses")
             .header("Authorization", format!("Bearer {}", self.api_key.lock()))
             .header("Content-Type", "application/json")
             .json(&request_body)
@@ -52,11 +42,20 @@ impl LLM for MoonshotConfig {
             .await?;
 
         let data: serde_json::Value = response.json().await?;
+
         let content = data
-            .pointer("/choices/0/message/content")
+            .pointer("/output/1/content/0/text")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("无法从 Moonshot 响应提取文本。原始响应: {}", data))?;
-        Ok(serde_json::from_str(content)?)
+            .or_else(|| {
+                data["output"]
+                    .as_array()?
+                    .iter()
+                    .find(|o| o["type"] == "message")?
+                    .pointer("/content/0/text")?
+                    .as_str()
+            })
+            .ok_or_else(|| anyhow::anyhow!("无法从 OpenAI 响应提取文本。原始响应: {}", data))?;
+        Ok(serde_json::from_str::<Vec<AnswerItem>>(content)?)
     }
 }
 
@@ -82,14 +81,12 @@ mod tests {
 
         dotenv::dotenv().ok();
 
-        // 从环境变量 MOONSHOT_API_KEY 读取，如果不存在则报错
-        let api_key = parking_lot::Mutex::new(
-            std::env::var("MOONSHOT_API_KEY")
-                .expect("请在 .env 文件或环境变量中设置 MOONSHOT_API_KEY"),
-        );
+        // 从环境变量 OPENAI_API_KEY 读取，如果不存在则报错
+        let api_key =
+            std::env::var("OPENAI_API_KEY").expect("请在 .env 文件或环境变量中设置 OPENAI_API_KEY");
 
-        let config = MoonshotConfig {
-            api_key,
+        let config = OpenAIConfig {
+            api_key: parking_lot::Mutex::new(api_key),
             ..Default::default()
         };
 

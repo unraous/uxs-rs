@@ -1,13 +1,50 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect, onMounted } from 'vue';
+import { invoke } from '@tauri-apps/api/core';
 import BaseInput from './common/BaseInput.vue';
 import BaseToggle from './common/BaseToggle.vue';
 
-const perisistSession = ref(true);
-const muteCourseWebview = ref(true);
-const lockPlayingSpeed = ref(false);
-const playingSpeed = ref(1.0);
+interface OptionConfig {
+  persistSession: boolean,
+  muteWebview: boolean,
+  speedLock: boolean,
+  speedValue: number,
+}
 
+const DEFAULT_OPTION: OptionConfig = {
+  persistSession: true,
+  muteWebview: true,
+  speedLock: false,
+  speedValue: 2.0,
+}
+
+const options = ref<OptionConfig>(DEFAULT_OPTION);
+
+onMounted(async () => {
+  try {
+    const res = await invoke<OptionConfig>('options');
+    options.value = res;
+  } catch (err) {
+    console.error('获取配置失败:', err);
+  }
+});
+
+watchEffect((onCleanup) => {
+  const configPayload = { ...options.value };
+
+  const timer = setTimeout(async () => {
+    try {
+      await invoke('set_options', { options: configPayload });
+      console.log('保存配置成功:', configPayload);
+    } catch (err) {
+      console.error('保存配置失败:', err);
+    }
+  }, 300);
+
+  onCleanup(() => {
+    clearTimeout(timer);
+  });
+});
 
 </script>
 
@@ -15,10 +52,10 @@ const playingSpeed = ref(1.0);
   <div class="course-config-panel">
     <h2 class="title">Course</h2>
     <div class="settings-container">
-      <BaseToggle v-model="perisistSession" label="Perisist Session" />
-      <BaseToggle v-model="muteCourseWebview" label="Mute Course Webview" />
-      <BaseToggle v-model="lockPlayingSpeed" label="Lock Playing Speed" />
-      <BaseInput v-model.number="playingSpeed" label="Playing Speed" pattern="\d+(?:\.\d*)?" class="speed-input" />
+      <BaseToggle v-model="options.persistSession" label="Perisist Session" />
+      <BaseToggle v-model="options.muteWebview" label="Mute Course Webview" />
+      <BaseToggle v-model="options.speedLock" label="Lock Playing Speed" />
+      <BaseInput v-model.number="options.speedValue" label="Playing Speed" pattern="\d+(?:\.\d*)?" class="speed-input" />
     </div>
   </div>
 </template>

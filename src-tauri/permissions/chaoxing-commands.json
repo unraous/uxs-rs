@@ -1,0 +1,15 @@
+{
+    "default": null,
+    "permission": [
+        {
+            "commands": {
+                "allow": [
+                    "options"
+                ],
+                "deny": []
+            },
+            "description": "permission for chaoxing commands",
+            "identifier": "chaoxing-commands"
+        }
+    ]
+}

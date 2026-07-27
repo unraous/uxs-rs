@@ -1,18 +1,18 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::bigmodel::BigModelConfig;
-use crate::core::qa_pipeline::html::Question;
+use crate::config::llm::ollama::OllamaConfig;
+use crate::core::quiz::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
-impl LLM for BigModelConfig {
+impl LLM for OllamaConfig {
     fn api_key(&self) -> String {
-        self.api_key.lock().clone()
-    }
-    fn set_key(&self, key: &str) {
-        *self.api_key.lock() = key.to_string();
+        String::new()
+    } // Ollama has no API key, return empty string
+    fn set_key(&self, _key: &str) {
+        log::warn!("Ollama 无 API Key 可设置")
     }
     fn available_models(&self) -> Vec<String> {
         self.models.clone()
@@ -26,41 +26,42 @@ impl LLM for BigModelConfig {
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!(
-            "将使用 BigModel 模型 {} 进行推理",
+            "将使用 Ollama 本地模型 {} 进行推理",
             *self.chosen_model.lock()
         );
+
         let request_body = serde_json::json!({
-        "model": self.chosen_model,
-        "messages": [
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            },
-            {
-                "role": "user",
-                "content": serde_json::to_string(&question)?
-            }
+            "model": *self.chosen_model.lock(),
+            "messages": [
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": serde_json::to_string(&question)?
+                }
             ],
-            "temperature": 0.1,
-            "top_p": 0.95,
-            "response_format": {
-                "type": "json_object"
-            }
+            "stream": false
         });
 
         let response = reqwest::Client::new()
-            .post("https://open.bigmodel.cn/api/paas/v4/chat/completions")
-            .header("Authorization", format!("Bearer {}", self.api_key.lock()))
-            .header("Content-Type", "application/json")
+            .post("http://localhost:11434/api/chat")
             .json(&request_body)
             .send()
             .await?;
 
+        if !response.status().is_success() {
+            anyhow::bail!("Ollama API error: {}", response.status());
+        }
+
+        // 解析响应
         let data: serde_json::Value = response.json().await?;
         let content = data
-            .pointer("/choices/0/message/content")
+            .pointer("/message/content")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("无法从 BigModel 响应提取文本。原始响应: {}", data))?;
+            .ok_or_else(|| anyhow::anyhow!("无法从 Ollama 响应提取文本。原始响应: {}", data))?;
+
         Ok(serde_json::from_str(content)?)
     }
 }
@@ -68,12 +69,12 @@ impl LLM for BigModelConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use parking_lot::Mutex;
     use std::fs;
     use std::path::PathBuf;
 
     #[tokio::test]
     async fn test_solve_with_local_json() {
+        // 1. 获取测试文件路径 (假设在 src-tauri 目录下运行)
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push("tests/assets/course-page/decrypted.json");
 
@@ -85,23 +86,12 @@ mod tests {
 
         println!("成功加载了 {} 道题目", questions.len());
 
-        dotenv::dotenv().ok();
-
-        // 从环境变量 BIGMODEL_API_KEY 读取，如果不存在则报错
-        let api_key = std::env::var("BIGMODEL_API_KEY")
-            .expect("请在 .env 文件或环境变量中设置 BIGMODEL_API_KEY");
-
-        let config = BigModelConfig {
-            api_key: Mutex::new(api_key),
-            ..Default::default()
-        };
-
+        let mut config = OllamaConfig::default();
+        config.load_models().await;
         match config.solve(questions.clone()).await {
             Ok(answers) => {
                 assert_eq!(answers.len(), questions.len());
-                for (i, answer) in answers.iter().enumerate() {
-                    println!("问题 {} 的回答: {:?}", i + 1, answer);
-                }
+                println!("收到回答，{:?}", answers);
             }
             Err(e) => {
                 println!("调用失败: {}", e);

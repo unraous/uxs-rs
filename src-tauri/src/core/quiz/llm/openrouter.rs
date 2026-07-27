@@ -1,13 +1,13 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::deepseek::DeepSeekConfig;
-use crate::core::qa_pipeline::html::Question;
+use crate::config::llm::openrouter::OpenrouterConfig;
+use crate::core::quiz::html::Question;
 
 use anyhow::Result;
 use async_trait::async_trait;
 
 #[async_trait]
-impl LLM for DeepSeekConfig {
+impl LLM for OpenrouterConfig {
     fn api_key(&self) -> String {
         self.api_key.lock().clone()
     }
@@ -26,12 +26,12 @@ impl LLM for DeepSeekConfig {
 
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!(
-            "将使用 DeepSeek 模型 {} 进行推理",
+            "将使用 Openrouter 模型 {} 进行推理",
             *self.chosen_model.lock()
         );
 
         let request_body = serde_json::json!({
-            "model": self.chosen_model,
+            "model": *self.chosen_model.lock(),
             "messages": [
                 {
                     "role": "system",
@@ -42,15 +42,10 @@ impl LLM for DeepSeekConfig {
                     "content": serde_json::to_string(&question)?
                 }
             ],
-            "temperature": 0.3,
-            "top_p": 0.95,
-            "response_format": {
-                "type": "json_object"
-            }
         });
 
         let response = reqwest::Client::new()
-            .post("https://api.deepseek.com/chat/completions")
+            .post("https://openrouter.ai/api/v1/chat/completions")
             .header("Authorization", format!("Bearer {}", self.api_key.lock()))
             .header("Content-Type", "application/json")
             .json(&request_body)
@@ -62,7 +57,7 @@ impl LLM for DeepSeekConfig {
         let content = data
             .pointer("/choices/0/message/content")
             .and_then(|v| v.as_str())
-            .ok_or_else(|| anyhow::anyhow!("无法从 DeepSeek 响应提取文本。原始响应: {}", data))?;
+            .ok_or_else(|| anyhow::anyhow!("无法从 Openrouter 响应提取文本。原始响应: {}", data))?;
         Ok(serde_json::from_str(content)?)
     }
 }
@@ -89,19 +84,24 @@ mod tests {
 
         dotenv::dotenv().ok();
 
-        // 从环境变量 DEEPSEEK_API_KEY 读取，如果不存在则报错
-        let api_key = std::env::var("DEEPSEEK_API_KEY")
-            .expect("请在 .env 文件或环境变量中设置 DEEPSEEK_API_KEY");
+        // 从环境变量 OPENROUTER_API_KEY 读取，如果不存在则报错
+        let api_key = parking_lot::Mutex::new(
+            std::env::var("OPENROUTER_API_KEY")
+                .expect("请在 .env 文件或环境变量中设置 OPENROUTER_API_KEY"),
+        );
 
-        let config = DeepSeekConfig {
-            api_key: parking_lot::Mutex::new(api_key),
+        let config = OpenrouterConfig {
+            api_key,
+            chosen_model: parking_lot::Mutex::new(String::from("google/gemma-4-31b-it:free")),
             ..Default::default()
         };
 
         match config.solve(questions.clone()).await {
             Ok(answers) => {
                 assert_eq!(answers.len(), questions.len());
-                println!("收到回答，{:?}", answers);
+                for (i, answer) in answers.iter().enumerate() {
+                    println!("问题 {} 的回答: {:?}", i + 1, answer);
+                }
             }
             Err(e) => {
                 println!("调用失败: {}", e);

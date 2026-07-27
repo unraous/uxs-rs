@@ -4,7 +4,7 @@ use super::url::{classify, Type};
 pub fn obtain(t: Type) -> Option<String> {
     match t {
         Type::Course => Some(include_str!("../scripts/core.js").to_string()),
-        Type::MainSpace => None,
+        Type::MainSpace => Some(include_str!("../scripts/modify-targets.js").to_string()),
         Type::Mask => Some(include_str!("../scripts/show-mask.js").to_string()),
         Type::Login => Some(include_str!("../scripts/click-auto-login.js").to_string()),
         Type::Other => None,

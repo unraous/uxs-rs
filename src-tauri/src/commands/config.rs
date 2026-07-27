@@ -22,6 +22,14 @@ pub fn options() -> OptionsConfig {
     options
 }
 
+#[tauri::command]
+pub fn set_options(options: OptionsConfig) {
+    log::debug!("正在设置配置信息...");
+    *CONFIG.options.lock() = options;
+    save_config();
+    log::info!("成功设置配置信息: {:?}", options);
+}
+
 // Get the list of available LLM providers.
 #[tauri::command]
 pub fn providers() -> Vec<String> {

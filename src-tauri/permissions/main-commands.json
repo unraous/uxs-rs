@@ -1,0 +1,28 @@
+{
+  "default": null,
+  "permission": [
+    {
+      "commands": {
+        "allow": [
+          "api_key",
+          "close",
+          "current_model",
+          "current_provider",
+          "metadata",
+          "minimize",
+          "models",
+          "options",
+          "providers",
+          "save_config",
+          "set_key",
+          "set_options",
+          "switch_model",
+          "switch_provider"
+        ],
+        "deny": []
+      },
+      "description": "permission for main commands",
+      "identifier": "main-commands"
+    }
+  ]
+}

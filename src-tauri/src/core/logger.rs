@@ -15,7 +15,7 @@ pub fn init() -> Result<(), fern::InitError> {
     let log_file =
         CONFIG.paths.dirs["logs"].join(format!("{}.log", Local::now().format("%Y-%m-%d_%H-%M-%S")));
 
-    let (tx, rx) = mpsc::channel::<String>();
+    let (sender, receiver) = mpsc::channel::<String>();
 
     let thread_log_file = log_file.clone();
     thread::spawn(move || {
@@ -25,7 +25,7 @@ pub fn init() -> Result<(), fern::InitError> {
             .open(&thread_log_file)
             .ok();
 
-        while let Ok(msg) = rx.recv() {
+        while let Ok(msg) = receiver.recv() {
             println!("{}", msg);
             if let Some(ref mut f) = file {
                 let _ = writeln!(f, "{}", msg);
@@ -50,7 +50,7 @@ pub fn init() -> Result<(), fern::InitError> {
                 message
             ))
         })
-        .chain(fern::Output::sender(tx, ""))
+        .chain(fern::Output::sender(sender, ""))
         .level(log::LevelFilter::Info)
         .level_for("uxs_lib", CONFIG.metadata.log_level)
         .apply()?;

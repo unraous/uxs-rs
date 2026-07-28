@@ -1,10 +1,7 @@
 use crate::config::CONFIG;
 
 use chrono::Local;
-use fern::{
-    colors::{Color, ColoredLevelConfig},
-    Dispatch,
-};
+use fern::Dispatch;
 use log::info;
 use std::{fs::OpenOptions, io::Write, sync::mpsc, thread};
 
@@ -35,17 +32,10 @@ pub fn init() -> Result<(), fern::InitError> {
 
     Dispatch::new()
         .format(|out, message, record| {
-            let colors = ColoredLevelConfig::new()
-                .info(Color::Green)
-                .warn(Color::Yellow)
-                .error(Color::Red)
-                .debug(Color::Blue)
-                .trace(Color::White);
-
             out.finish(format_args!(
                 "[{} {} {}] {}",
                 Local::now().format("%Y-%m-%d %H:%M:%S"),
-                colors.color(record.level()),
+                record.level(),
                 record.target(),
                 message
             ))

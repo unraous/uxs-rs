@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import xIconRaw from '@/assets/x.svg?raw';
-import mIconRaw from '@/assets/-.svg?raw';
-import { commands } from '@/services/cmds';
+import xIconRaw from "@/assets/x.svg?raw";
+import mIconRaw from "@/assets/-.svg?raw";
+import { commands } from "@/services/cmds";
 
 const props = defineProps<{
   appTitle: string;
@@ -14,7 +14,6 @@ const minimizeApp = () => {
 const closeApp = () => {
   commands.close();
 };
-
 </script>
 
 <template>
@@ -23,10 +22,10 @@ const closeApp = () => {
       {{ appTitle }}
     </div>
     <button @click="minimizeApp">
-        <span v-html="mIconRaw" class="icon"></span>
+      <span v-html="mIconRaw" class="icon"></span>
     </button>
     <button @click="closeApp">
-        <span v-html="xIconRaw" class="icon"></span>
+      <span v-html="xIconRaw" class="icon"></span>
     </button>
   </div>
 </template>

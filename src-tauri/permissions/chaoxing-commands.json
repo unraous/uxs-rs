@@ -4,7 +4,8 @@
         {
             "commands": {
                 "allow": [
-                    "options"
+                    "options",
+                    "solve_quiz"
                 ],
                 "deny": []
             },

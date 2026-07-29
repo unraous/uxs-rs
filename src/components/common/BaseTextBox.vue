@@ -1,6 +1,5 @@
-
 <script setup lang="ts">
-import { computed, useId } from 'vue';
+import { computed, useId } from "vue";
 
 const props = defineProps<{
   modelValue: any;
@@ -9,29 +8,31 @@ const props = defineProps<{
   id?: string;
 }>();
 
-const emit = defineEmits(['update:modelValue', 'change']);
+const emit = defineEmits(["update:modelValue", "change"]);
 const inputId = computed(() => props.id || useId());
 
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const value = target.value;
 
-  if (props.pattern && value !== '' && !new RegExp(`^(?:${props.pattern})$`).test(value)) {
-    target.value = props.modelValue || '';
+  if (
+    props.pattern &&
+    value !== "" &&
+    !new RegExp(`^(?:${props.pattern})$`).test(value)
+  ) {
+    target.value = props.modelValue || "";
     return;
   }
 
-  emit('update:modelValue', value);
+  emit("update:modelValue", value);
 };
-
-
 </script>
 
 <template>
   <div class="base-text-box">
     <div class="input-container">
       <input
-        :id="inputId" 
+        :id="inputId"
         :value="modelValue"
         :placeholder="placeholder"
         :pattern="pattern"
@@ -50,7 +51,7 @@ const onInput = (event: Event) => {
   --contrast-border: color-mix(in srgb, var(--brand-color), black 30%);
   --base-thickness: 2px;
   --lift-thickness: 5px;
-  
+
   display: flex;
   flex-direction: column;
 }
@@ -73,7 +74,7 @@ const onInput = (event: Event) => {
   font-weight: 600;
   position: relative;
   z-index: 5;
-  
+
   transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -94,15 +95,15 @@ const onInput = (event: Event) => {
 
   --t: var(--base-thickness);
   clip-path: polygon(
-    calc(100% - var(--t)) 0,     
-    100% var(--t),               
-    100% 100%,                   
-    var(--t) 100%,               
-    0 calc(100% - var(--t)),     
-    calc(100% - var(--t)) calc(100% - var(--t)) 
+    calc(100% - var(--t)) 0,
+    100% var(--t),
+    100% 100%,
+    var(--t) 100%,
+    0 calc(100% - var(--t)),
+    calc(100% - var(--t)) calc(100% - var(--t))
   );
 
-  transition: 
+  transition:
     clip-path 0.2s cubic-bezier(0.2, 0, 0, 1),
     background 0.2s ease,
     transform 0.2s cubic-bezier(0.2, 0, 0, 1);

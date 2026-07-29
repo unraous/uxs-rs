@@ -1,6 +1,4 @@
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div class="body">
@@ -37,6 +35,6 @@
   padding: 20px;
   width: 100%;
   height: 20%;
-  background-color: #F6F8FA;
+  background-color: #f6f8fa;
 }
 </style>

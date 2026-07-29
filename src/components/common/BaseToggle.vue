@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
-import BaseLabel from './BaseLabel.vue';
+import { ref, watch, onMounted, onUnmounted } from "vue";
+import BaseLabel from "./BaseLabel.vue";
 
-const props = withDefaults(defineProps<{
-  label: string;
-  modelValue?: boolean;
-}>(), {
-  modelValue: false,
-});
+const props = withDefaults(
+  defineProps<{
+    label: string;
+    modelValue?: boolean;
+  }>(),
+  {
+    modelValue: false,
+  },
+);
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
 // 初始旋转角度
 const rotationAngle = ref(180);
@@ -17,7 +20,7 @@ const ballVisible = ref(false);
 let timer: ReturnType<typeof setTimeout> | null = null;
 
 const toggle = () => {
-  emit('update:modelValue', !props.modelValue);
+  emit("update:modelValue", !props.modelValue);
 };
 
 const handleStateUpdate = (isON: boolean, isInitial = false) => {
@@ -30,14 +33,17 @@ const handleStateUpdate = (isON: boolean, isInitial = false) => {
   if (timer) clearTimeout(timer);
 
   // 延迟时间与 CSS 变量 --duration-ring 保持一致 (400ms)
-  const delay = isInitial ? 250 : 300; 
-  
+  const delay = isInitial ? 250 : 300;
+
   timer = setTimeout(() => {
     ballVisible.value = props.modelValue;
   }, delay);
 };
 
-watch(() => props.modelValue, (newVal) => handleStateUpdate(newVal));
+watch(
+  () => props.modelValue,
+  (newVal) => handleStateUpdate(newVal),
+);
 
 onMounted(() => handleStateUpdate(props.modelValue, true));
 onUnmounted(() => timer && clearTimeout(timer));
@@ -46,22 +52,21 @@ onUnmounted(() => timer && clearTimeout(timer));
 <template>
   <div class="base-config-input">
     <BaseLabel :label="label" />
-    
+
     <div class="input-section">
       <div class="bowl-toggle" @click="toggle">
         <!-- 变量控制中心 -->
         <div class="canvas-area">
-          
-          <div 
-            class="bowl-ring" 
+          <div
+            class="bowl-ring"
             :style="{ transform: `rotate(${rotationAngle}deg)` }"
           >
             <svg viewBox="0 0 40 40" class="bowl-svg">
-              <path 
-                d="M 4,20 A 16,16 0 0 0 36,20" 
-                fill="none" 
-                stroke="currentColor" 
-                stroke-width="5" 
+              <path
+                d="M 4,20 A 16,16 0 0 0 36,20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="5"
                 stroke-linecap="round"
               />
             </svg>
@@ -72,7 +77,6 @@ onUnmounted(() => timer && clearTimeout(timer));
               <div v-if="ballVisible" class="ball" />
             </transition>
           </div>
-
         </div>
       </div>
     </div>
@@ -106,17 +110,17 @@ onUnmounted(() => timer && clearTimeout(timer));
 /* --- 变量控制中心 --- */
 .canvas-area {
   position: relative;
-  
+
   /* 基础尺寸与颜色 */
-  --size: 40px; 
+  --size: 40px;
   --color: #0d58a4;
   --ball-size: 24px;
-  
+
   /* 动画时间 */
   --duration-ring: 0.3s;
   --duration-ball-in: 0.25s;
   --duration-ball-out: 0.25s;
-  
+
   /* 物理数值 */
   --drop-height: -50px;
   --bounce-height: -5px;
@@ -129,7 +133,7 @@ onUnmounted(() => timer && clearTimeout(timer));
 .bowl-ring {
   position: absolute;
   inset: 0;
-  transition: 
+  transition:
     transform var(--duration-ring) cubic-bezier(0.3, 1.4, 0.6, 1),
     filter 0.25s ease;
   transform-origin: center;
@@ -161,10 +165,18 @@ onUnmounted(() => timer && clearTimeout(timer));
 }
 
 @keyframes ball-drop-in {
-  0% { transform: translateY(var(--drop-height)); }
-  60% { transform: translateY(0); }
-  80% { transform: translateY(var(--bounce-height)); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(var(--drop-height));
+  }
+  60% {
+    transform: translateY(0);
+  }
+  80% {
+    transform: translateY(var(--bounce-height));
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .ball-physics-leave-active {

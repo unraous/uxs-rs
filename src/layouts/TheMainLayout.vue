@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import MenuBar from '@/components/TheMenuBar.vue';
-import TheLeftLayout from './TheLeftLayout.vue';
-import TheRightLayout from './TheRightLayout.vue';
-import { onMounted, ref } from 'vue';
-import { commands, MetadataConfig } from '@/services/cmds.ts';
+import MenuBar from "@/components/TheMenuBar.vue";
+import TheLeftLayout from "./TheLeftLayout.vue";
+import TheRightLayout from "./TheRightLayout.vue";
+import { onMounted, ref } from "vue";
+import { commands, MetadataConfig } from "@/services/cmds.ts";
 
 const metadata = ref<MetadataConfig>();
 
@@ -17,7 +17,7 @@ onMounted(async () => {
     <MenuBar :app-title="metadata?.title ?? 'backend error'" />
     <div class="main-layout">
       <TheLeftLayout />
-      <TheRightLayout 
+      <TheRightLayout
         :author="metadata?.author ?? 'backend error'"
         :version="metadata?.version ?? '0.0.0'"
       />
@@ -39,5 +39,4 @@ onMounted(async () => {
   display: flex;
   flex-direction: row;
 }
-
 </style>

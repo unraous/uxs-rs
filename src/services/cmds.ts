@@ -23,6 +23,7 @@ export const commands = {
 	apiKey: () => __TAURI_INVOKE<string>("api_key"),
 	/**  Set the API key for the current LLM provider. */
 	setKey: (key: string) => __TAURI_INVOKE<void>("set_key", { key }),
+	/**  Save configuration to file. */
 	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
 	/**  Close the application window with a fade-out animation. */
 	close: () => __TAURI_INVOKE<void>("close"),

@@ -1,13 +1,12 @@
-
 <script setup lang="ts">
-import BaseButton from '@/components/common/BaseButton.vue';
-import TheAPIPanel from '@/components/TheAPIPanel.vue';
-import TheCourseConfigPanel from '@/components/TheCourseConfigPanel.vue';
-import { invoke } from '@tauri-apps/api/core';
+import BaseButton from "@/components/common/BaseButton.vue";
+import TheAPIPanel from "@/components/TheAPIPanel.vue";
+import TheCourseConfigPanel from "@/components/TheCourseConfigPanel.vue";
+import { invoke } from "@tauri-apps/api/core";
 
 const saveConfig = async () => {
-  await invoke('save_config');
-}
+  await invoke("save_config");
+};
 </script>
 
 <template>
@@ -18,13 +17,12 @@ const saveConfig = async () => {
       <TheCourseConfigPanel ref="courseConfigPanelRef" />
     </div>
     <div class="save-button" @click="saveConfig">
-      <BaseButton label="Save" style="width: 25%;" />
+      <BaseButton label="Save" style="width: 25%" />
     </div>
   </div>
 </template>
 
 <style scoped>
-
 .setting-panel {
   flex: 1;
   flex-direction: column;

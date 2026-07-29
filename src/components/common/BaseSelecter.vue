@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import BaseLabel from './BaseLabel.vue';
+import { ref, onMounted, onUnmounted } from "vue";
+import BaseLabel from "./BaseLabel.vue";
 
 withDefaults(
   defineProps<{
-    modelValue: number; 
+    modelValue: number;
     label: string;
-    options?: string[];    
+    options?: string[];
   }>(),
   {
-    options: () => ["undefined", "option1", "option2", "option3"]
-  }
+    options: () => ["undefined", "option1", "option2", "option3"],
+  },
 );
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: number): void;
+  (e: "update:modelValue", value: number): void;
 }>();
 
 const isOpen = ref(false);
@@ -26,14 +26,14 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 };
 
-onMounted(() => document.addEventListener('click', handleClickOutside));
-onUnmounted(() => document.removeEventListener('click', handleClickOutside));
+onMounted(() => document.addEventListener("click", handleClickOutside));
+onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 </script>
 
 <template>
   <div class="base-config-select">
     <BaseLabel :label="label" />
-    
+
     <div class="input-section" ref="dropdownRef">
       <div
         :id="label"
@@ -41,14 +41,19 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
         :class="{ 'is-open': isOpen }"
         @click="isOpen = !isOpen"
       >
-        <span class="selected-text">{{ options?.[modelValue] ?? '' }}</span>
+        <span class="selected-text">{{ options?.[modelValue] ?? "" }}</span>
         <span class="select-arrow" :class="{ 'is-open': isOpen }">
-          <svg viewBox="0 -960 960 960" width="24" height="24" fill="currentColor">
-            <path d="m256-424-56-56 280-280 280 280-56 56-224-223-224 223Z"/>
+          <svg
+            viewBox="0 -960 960 960"
+            width="24"
+            height="24"
+            fill="currentColor"
+          >
+            <path d="m256-424-56-56 280-280 280 280-56 56-224-223-224 223Z" />
           </svg>
         </span>
       </div>
-      
+
       <Transition name="dropdown">
         <div v-show="isOpen" class="select-dropdown-wrapper">
           <div class="select-dropdown">
@@ -57,7 +62,10 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
               :key="index"
               class="select-option"
               :class="{ 'is-selected': index === modelValue }"
-              @click="emit('update:modelValue', index); isOpen = false"
+              @click="
+                emit('update:modelValue', index);
+                isOpen = false;
+              "
             >
               {{ opt }}
             </div>
@@ -91,7 +99,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 }
 
 .select-trigger {
-  width: 100%; 
+  width: 100%;
   font-size: 1rem;
   border: 2px solid #0d58a4;
   background-color: #ebe2cf;
@@ -102,8 +110,6 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 .select-trigger:hover {
   border-color: #0b4c8d;
 }
-
-
 
 .selected-text {
   overflow: hidden;
@@ -141,7 +147,9 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
 }
 
 .select-option {
-  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  transition:
+    background-color 0.15s ease-in-out,
+    color 0.15s ease-in-out;
 }
 
 .select-option:hover {

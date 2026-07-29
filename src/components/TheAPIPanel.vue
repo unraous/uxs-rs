@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
-import BaseInput from './common/BaseInput.vue';
-import BaseSelecter from './common/BaseSelecter.vue';
-import { commands } from '@/services/cmds.ts';
+import { onMounted, ref, watch } from "vue";
+import BaseInput from "./common/BaseInput.vue";
+import BaseSelecter from "./common/BaseSelecter.vue";
+import { commands } from "@/services/cmds.ts";
 
 const provider = ref(0);
 const providers = ref<string[]>([]);
 const model = ref(0);
 const models = ref<string[]>([]);
-const apiKey = ref('');
+const apiKey = ref("");
 
 const loadProvider = async () => {
   if (providers.value.length === 0) {
-    console.error('Provider 列表为空');
+    console.error("Provider 列表为空");
     return;
   }
 
@@ -23,10 +23,11 @@ const loadProvider = async () => {
     commands.apiKey(),
   ]);
   models.value = fetchedModels;
-  model.value = fetchedModels.includes(currentModel) ? fetchedModels.indexOf(currentModel) : 0;
+  model.value = fetchedModels.includes(currentModel)
+    ? fetchedModels.indexOf(currentModel)
+    : 0;
   apiKey.value = fetchedApiKey;
 };
-
 
 onMounted(async () => {
   const [fetchedProviders, currentProvider] = await Promise.all([
@@ -34,8 +35,10 @@ onMounted(async () => {
     commands.currentProvider(),
   ]);
   providers.value = fetchedProviders;
-  
-  const targetProviderIndex = fetchedProviders.includes(currentProvider) ? fetchedProviders.indexOf(currentProvider) : 0;
+
+  const targetProviderIndex = fetchedProviders.includes(currentProvider)
+    ? fetchedProviders.indexOf(currentProvider)
+    : 0;
   if (provider.value === targetProviderIndex) {
     await loadProvider();
   } else {
@@ -48,7 +51,6 @@ watch(provider, loadProvider);
 watch(model, async () => {
   await commands.switchModel(models.value[model.value]);
 });
-
 </script>
 
 <template>
@@ -57,7 +59,11 @@ watch(model, async () => {
     <div class="settings-container">
       <BaseSelecter v-model="provider" label="Provider" :options="providers" />
       <BaseSelecter v-model="model" label="Model" :options="models" />
-      <BaseInput v-model="apiKey" label="API Key" @change="commands.setKey(apiKey)" />
+      <BaseInput
+        v-model="apiKey"
+        label="API Key"
+        @change="commands.setKey(apiKey)"
+      />
     </div>
   </div>
 </template>
@@ -77,15 +83,14 @@ watch(model, async () => {
   gap: 48px;
   flex-direction: column;
 }
-  
+
 .title {
   display: flex;
   height: 48px;
   font-size: 1.5rem;
   align-items: center;
-  justify-content: center;   
+  justify-content: center;
 }
-
 
 :deep(.base-config-select:first-child .select-dropdown-wrapper) {
   z-index: 20;

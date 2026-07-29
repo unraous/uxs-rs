@@ -9,7 +9,7 @@ use strum::IntoEnumIterator;
 pub fn metadata() -> MetadataConfig {
     log::debug!("正在获取元数据...");
     let metadata = CONFIG.metadata.clone();
-    log::info!("成功获取元数据: {:#?}", metadata);
+    log::info!("成功获取元数据: {:?}", metadata);
     metadata
 }
 
@@ -27,7 +27,6 @@ pub fn options() -> OptionsConfig {
 pub fn set_options(options: OptionsConfig) {
     log::debug!("正在设置配置信息...");
     *CONFIG.options.lock() = options;
-    save_config().ok();
     log::info!("成功设置配置信息: {:?}", options);
 }
 
@@ -112,9 +111,9 @@ pub fn set_key(key: String) {
     log::debug!("正在设置 [{:?}] 的 API 密钥...", CONFIG.llm.provider);
     CONFIG.llm.current().set_key(&key);
     log::info!("成功设置 [{:?}] 的 API 密钥", CONFIG.llm.provider);
-    save_config().ok();
 }
 
+/// Save configuration to file.
 #[tauri::command]
 #[specta::specta]
 pub fn save_config() -> CommandsResult<()> {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref } from "vue";
 
 const props = defineProps<{
   label: string;
@@ -11,37 +11,38 @@ let rippleCount = 0;
 const createRipple = (event: MouseEvent) => {
   const button = event.currentTarget as HTMLElement;
   const rect = button.getBoundingClientRect();
-  
+
   const size = Math.max(rect.width, rect.height) * 2.5;
-  
+
   const x = event.clientX - rect.left - size / 2;
   const y = event.clientY - rect.top - size / 2;
-  
+
   const id = rippleCount++;
   ripples.value.push({ id, x, y, size });
 
   setTimeout(() => {
-    ripples.value = ripples.value.filter(r => r.id !== id);
+    ripples.value = ripples.value.filter((r) => r.id !== id);
   }, 600);
 };
-
 </script>
 
 <template>
   <button class="base-button" @mousedown="createRipple">
     <div class="content">
-      <slot><span class="text">{{ props.label }}</span></slot>
+      <slot
+        ><span class="text">{{ props.label }}</span></slot
+      >
     </div>
-    
-    <span 
-      v-for="ripple in ripples" 
-      :key="ripple.id" 
+
+    <span
+      v-for="ripple in ripples"
+      :key="ripple.id"
       class="ripple"
       :style="{
         left: ripple.x + 'px',
         top: ripple.y + 'px',
         width: ripple.size + 'px',
-        height: ripple.size + 'px'
+        height: ripple.size + 'px',
       }"
     ></span>
   </button>
@@ -50,8 +51,8 @@ const createRipple = (event: MouseEvent) => {
 <style scoped>
 .base-button {
   --height: 54px;
-    
-  --brand-color: #0d58a4; 
+
+  --brand-color: #0d58a4;
   --color-mid: var(--brand-color);
   --color-dark: color-mix(in srgb, var(--brand-color), black 25%);
   --color-light: color-mix(in srgb, var(--brand-color), white 75%);
@@ -61,17 +62,17 @@ const createRipple = (event: MouseEvent) => {
   height: var(--height);
   padding: 0 calc(var(--height));
   border-radius: calc(var(--height) / 2);
-  
+
   color: var(--text-color);
   background: conic-gradient(
-    from 145deg at 50% 0%, 
-    var(--color-dark) 0deg, 
-    var(--color-mid) 160deg, 
-    var(--color-light) 180deg, 
-    var(--color-mid) 200deg, 
+    from 145deg at 50% 0%,
+    var(--color-dark) 0deg,
+    var(--color-mid) 160deg,
+    var(--color-light) 180deg,
+    var(--color-mid) 200deg,
     var(--color-dark) 360deg
   );
-  
+
   border: none;
   cursor: pointer;
   display: flex;
@@ -85,9 +86,9 @@ const createRipple = (event: MouseEvent) => {
 
 .ripple {
   position: absolute;
-  background: rgba(255, 255, 255, 0.4); 
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 50%;
-  pointer-events: none; 
+  pointer-events: none;
   transform: scale(0);
   animation: ripple-animation 0.6s ease-out;
 }
@@ -105,7 +106,7 @@ const createRipple = (event: MouseEvent) => {
 
 .content {
   position: relative;
-  z-index: 1; 
+  z-index: 1;
   font-size: 1.25rem;
 }
 
@@ -118,5 +119,4 @@ const createRipple = (event: MouseEvent) => {
 .base-button:active {
   transform: scale(0.95);
 }
-
 </style>

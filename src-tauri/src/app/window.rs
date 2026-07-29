@@ -1,7 +1,6 @@
 use super::webview;
 
 use crate::config::CONFIG;
-use crate::network::ws;
 
 use tauri::{image::Image, WindowBuilder};
 
@@ -68,7 +67,6 @@ pub fn init(app: &mut tauri::App) -> std::result::Result<(), Box<dyn std::error:
     webview::init_on(&window, "main")?;
     webview::init_on(&window, "chaoxing")?;
     webview::init_on(&window, "mask")?.hide()?;
-    ws::setup();
 
     log::info!("应用窗口初始化成功");
 

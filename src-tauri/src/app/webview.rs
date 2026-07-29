@@ -1,4 +1,7 @@
-use crate::core::script::load_on;
+use crate::core::{
+    script::load_on,
+    url::{classify, Type},
+};
 
 use anyhow;
 use log::debug;
@@ -27,6 +30,7 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
                 WebviewUrl::External("https://i.chaoxing.com/".parse()?),
             )
             .background_color((0, 0, 0, 0).into())
+            .on_navigation(|url| classify(url) != Type::Unknown)
             .on_page_load(load_on),
             LogicalPosition::new(logical_size.width * 0.51, logical_size.height * 0.46),
             LogicalSize::new(logical_size.width * 0.48, logical_size.height * 0.48),

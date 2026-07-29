@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use specta::Type;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Type)]
 #[serde(default, rename_all = "camelCase")] // Maps Rust `snake_case` to TypeScript `camelCase`
 pub struct OptionsConfig {
     pub persist_session: bool,

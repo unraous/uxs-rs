@@ -28,6 +28,9 @@ tauri = { version = "2.11.5", features = [
 ] }
 tauri-plugin-opener = "2.5.4"
 serde = { version = "1.0.229", features = ["derive"] }
+specta = { version = "=2.0.0-rc.25", features = ["derive"] }
+specta-typescript = "0.0.12"
+tauri-specta = { version = "=2.0.0-rc.25", features = ["typescript"] }
 serde_json = "1.0.151"
 log = { version = "0.4.33", features = ["serde"] }
 tokio = { version = "1.53.1", features = ["full"] }
@@ -51,6 +54,7 @@ auto_handler = { path = "./crates/auto_handler" }
 bytemuck = "1.25.2"
 parking_lot = { version = "0.12.5", features = ["serde"] }
 tract = "0.23.4"
+thiserror = "2.0.19"
 
 
 [workspace]

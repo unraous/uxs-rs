@@ -508,12 +508,6 @@
         };
     }
 
-    // 用法示例：
-    // const video = document.querySelector('video');
-    // forcePlaybackRate(video, 2.0);
-    // 用法：对每个 video 调用一次即可
-    // const stop = forcePlaybackRate(video, 2.0);
-
     function waitForSubmitAndContinue(innerDoc) {
         return new Promise(resolve => {
             const interval = setInterval(function () {
@@ -1235,7 +1229,7 @@
                                                                     }
                                                                     console.info('已获取到答案历史:', answerHistory);
                                                                     //confirm('[调试],已获取到答案历史，准备修补');
-                                                                    let answerJson = answerFixes(testList, answerHistory);
+                                                                    const answerJson = answerFixes(testList, answerHistory);
                                                                     if (answerJson.length === 0) {
                                                                         confirm('fix答案失败');
                                                                         resolve();
@@ -1285,7 +1279,7 @@
                                                                         }
 
                                                                     }
-                                                                } else if (globalThis._ws?.readyState === 1) {
+                                                                } else if (prama === 1) {
                                                                     console.info('已找到题目，开始传输');
                                                                     const htmlStr = testDoc.documentElement.outerHTML;
                                                                     if (answerTable) answerTable = [];
@@ -1293,26 +1287,8 @@
                                                                         event: 'SolveQuestions',
                                                                         data: { html: htmlStr }
                                                                     }));
-                                                                    await new Promise(resolve => {
-                                                                        function onMessage(event) {
-                                                                            const response = JSON.parse(event.data);
-
-                                                                            // 根据 WSResponse 协议判断
-                                                                            if (response.status === 'Success') {
-                                                                                // response.data.answer 是后端序列化后的答案 JSON 字符串，需要再次解析
-                                                                                const answerList = JSON.parse(response.data.answer);
-                                                                                autoFillAnswers(testList, answerList);
-                                                                                globalThis._ws.removeEventListener('message', onMessage);
-                                                                                console.info('已自动填充答案');
-                                                                                resolve();
-                                                                            } else if (response.status === 'Error') {
-                                                                                console.warn(`服务端处理异常: [${response.data.code}] ${response.data.message}`);
-                                                                                globalThis._ws.removeEventListener('message', onMessage);
-                                                                                resolve(); // 报错也 resolve 掉，避免流程卡死
-                                                                            }
-                                                                        }
-                                                                        globalThis._ws.addEventListener('message', onMessage);
-                                                                    });
+                                                                    const answerJson = await tauriInvoke("solve_quiz");
+                                                                    autoFillAnswers(testList, answerJson);
                                                                     submitBtn.click();
                                                                     await timeSleep(DEFAULT_SLEEP_TIME);
                                                                     const configElement = document.getElementById('workpop');

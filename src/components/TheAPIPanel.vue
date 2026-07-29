@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from 'vue';
 import BaseInput from './common/BaseInput.vue';
 import BaseSelecter from './common/BaseSelecter.vue';
-import { invoke } from '@tauri-apps/api/core';
+import { commands } from '@/services/cmds.ts';
 
 const provider = ref(0);
 const providers = ref<string[]>([]);
@@ -10,18 +10,17 @@ const model = ref(0);
 const models = ref<string[]>([]);
 const apiKey = ref('');
 
-
 const loadProvider = async () => {
   if (providers.value.length === 0) {
     console.error('Provider 列表为空');
     return;
   }
 
-  await invoke('switch_provider', { provider: providers.value[provider.value] });
+  await commands.switchProvider(providers.value[provider.value]);
   const [fetchedModels, currentModel, fetchedApiKey] = await Promise.all([
-    invoke('models') as Promise<string[]>,
-    invoke('current_model') as Promise<string>,
-    invoke('api_key') as Promise<string>
+    commands.models(),
+    commands.currentModel(),
+    commands.apiKey(),
   ]);
   models.value = fetchedModels;
   model.value = fetchedModels.includes(currentModel) ? fetchedModels.indexOf(currentModel) : 0;
@@ -31,8 +30,8 @@ const loadProvider = async () => {
 
 onMounted(async () => {
   const [fetchedProviders, currentProvider] = await Promise.all([
-    invoke('providers') as Promise<string[]>,
-    invoke('current_provider') as Promise<string>
+    commands.providers(),
+    commands.currentProvider(),
   ]);
   providers.value = fetchedProviders;
   
@@ -47,9 +46,8 @@ onMounted(async () => {
 watch(provider, loadProvider);
 
 watch(model, async () => {
-  await invoke('switch_model', { model: models.value[model.value] });
+  await commands.switchModel(models.value[model.value]);
 });
-
 
 </script>
 
@@ -59,7 +57,7 @@ watch(model, async () => {
     <div class="settings-container">
       <BaseSelecter v-model="provider" label="Provider" :options="providers" />
       <BaseSelecter v-model="model" label="Model" :options="models" />
-      <BaseInput v-model="apiKey" label="API Key" @change="invoke('set_key', { key: apiKey })" />
+      <BaseInput v-model="apiKey" label="API Key" @change="commands.setKey(apiKey)" />
     </div>
   </div>
 </template>

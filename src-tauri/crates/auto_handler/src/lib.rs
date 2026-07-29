@@ -10,6 +10,7 @@ struct CommandEntry {
     path: syn::Path,
     name: String,
     cfgs: Vec<syn::Attribute>,
+    is_specta: bool,
 }
 
 struct CommandVisitor {
@@ -27,6 +28,11 @@ impl<'ast> Visit<'ast> for CommandVisitor {
         });
 
         if is_command {
+            let is_specta = node.attrs.iter().any(|attr| {
+                let path = attr.path();
+                path.segments.last().is_some_and(|s| s.ident == "specta")
+            });
+
             let fn_name = &node.sig.ident;
             let command_name = fn_name.to_string();
             let full_path = format!("crate::commands::{}::{}", self.module_name, fn_name);
@@ -38,7 +44,12 @@ impl<'ast> Visit<'ast> for CommandVisitor {
                 .collect();
 
             if let Ok(path) = syn::parse_str::<syn::Path>(&full_path) {
-                self.commands.push(CommandEntry { path, name: command_name, cfgs });
+                self.commands.push(CommandEntry {
+                    path,
+                    name: command_name,
+                    cfgs,
+                    is_specta,
+                });
             }
         }
 
@@ -51,16 +62,10 @@ pub fn generate_auto_handler(_input: TokenStream) -> TokenStream {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
     let manifest_path = PathBuf::from(&manifest_dir);
 
-    let commands_dir = if manifest_path.join("src").join("commands").exists() {
-        manifest_path.join("src").join("commands")
-    } else if manifest_path.join("..").join("src").join("commands").exists() {
-        manifest_path.join("..").join("src").join("commands")
-    } else {
-        manifest_path.join("..").join("..").join("src").join("commands")
-    };
+    let commands_dir = manifest_path.join("src").join("commands");
+    let perm_file = manifest_path.join("permissions").join("main-commands.json");
 
-    let mut all_command_tokens = Vec::new();
-    let mut all_command_names = Vec::new();
+    let mut commands: Vec<CommandEntry> = Vec::new();
     let mut tracked_files = Vec::new();
 
     if commands_dir.exists() {
@@ -91,24 +96,9 @@ pub fn generate_auto_handler(_input: TokenStream) -> TokenStream {
 
             let module_name = components.join("::");
 
-            let content = match fs::read_to_string(path) {
-                Ok(c) => c,
-                Err(e) => {
-                    let msg = format!("auto_handler: failed to read {}: {}", path.display(), e);
-                    return syn::Error::new(proc_macro2::Span::call_site(), msg)
-                        .to_compile_error()
-                        .into();
-                }
-            };
-            let syntax_tree = match syn::parse_file(&content) {
-                Ok(t) => t,
-                Err(e) => {
-                    let msg = format!("auto_handler: failed to parse {}: {}", path.display(), e);
-                    return syn::Error::new(proc_macro2::Span::call_site(), msg)
-                        .to_compile_error()
-                        .into();
-                }
-            };
+            let content = fs::read_to_string(path).expect("auto_handler: failed to read file");
+            let syntax_tree =
+                syn::parse_file(&content).expect("auto_handler: failed to parse file");
 
             let mut visitor = CommandVisitor {
                 module_name,
@@ -116,43 +106,22 @@ pub fn generate_auto_handler(_input: TokenStream) -> TokenStream {
             };
             visitor.visit_file(&syntax_tree);
 
-            for cmd in visitor.commands {
-                let path = &cmd.path;
-                let cfgs = &cmd.cfgs;
-                all_command_names.push(cmd.name);
-                all_command_tokens.push(quote! {
-                    #(#cfgs)*
-                    #path
-                });
-            }
+            commands.extend(visitor.commands);
         }
     }
 
+    let mut all_command_names: Vec<String> = commands.iter().map(|c| c.name.clone()).collect();
     all_command_names.sort();
     all_command_names.dedup();
 
-    // Automatically sync permissions/main-commands.json
-    let permissions_dir = if manifest_path.join("permissions").exists() {
-        manifest_path.join("permissions")
-    } else if manifest_path.join("..").join("permissions").exists() {
-        manifest_path.join("..").join("permissions")
-    } else {
-        manifest_path.join("..").join("..").join("permissions")
-    };
-
-    let perm_file = permissions_dir.join("main-commands.json");
     if perm_file.exists() {
         if let Ok(content) = fs::read_to_string(&perm_file) {
             if let Ok(mut json) = serde_json::from_str::<serde_json::Value>(&content) {
-                if let Some(perm_array) = json.get_mut("permission").and_then(|p| p.as_array_mut()) {
-                    if let Some(first_perm) = perm_array.get_mut(0) {
-                        if let Some(commands_obj) = first_perm.get_mut("commands") {
-                            commands_obj["allow"] = serde_json::json!(all_command_names);
-                            if let Ok(new_content) = serde_json::to_string_pretty(&json) {
-                                if new_content != content {
-                                    let _ = fs::write(&perm_file, new_content);
-                                }
-                            }
+                if let Some(allow) = json.pointer_mut("/permission/0/commands/allow") {
+                    *allow = serde_json::json!(all_command_names);
+                    if let Ok(new_content) = serde_json::to_string_pretty(&json) {
+                        if new_content != content {
+                            let _ = fs::write(&perm_file, new_content);
                         }
                     }
                 }
@@ -160,9 +129,40 @@ pub fn generate_auto_handler(_input: TokenStream) -> TokenStream {
         }
     }
 
+    let all_command_tokens: Vec<_> = commands
+        .iter()
+        .map(|c| {
+            let path = &c.path;
+            let cfgs = &c.cfgs;
+            quote! { #(#cfgs)* #path }
+        })
+        .collect();
+
+    let specta_command_tokens: Vec<_> = commands
+        .iter()
+        .filter(|c| c.is_specta)
+        .map(|c| {
+            let path = &c.path;
+            let cfgs = &c.cfgs;
+            quote! { #(#cfgs)* #path }
+        })
+        .collect();
+
     let expanded = quote! {
         {
             #( const _: &[u8] = include_bytes!(#tracked_files); )*
+            #[cfg(debug_assertions)]
+            {
+                tauri_specta::Builder::<tauri::Wry>::new()
+                    .commands(tauri_specta::collect_commands![
+                        #(#specta_command_tokens),*
+                    ])
+                    .export(
+                        specta_typescript::Typescript::default(),
+                        "../src/services/cmds.ts",
+                    )
+                    .expect("auto_handler: failed to export typescript bindings");
+            }
             tauri::generate_handler![
                 #(#all_command_tokens),*
             ]

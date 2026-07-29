@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import xIconRaw from '@/assets/x.svg?raw';
 import mIconRaw from '@/assets/-.svg?raw';
-import { invoke } from '@tauri-apps/api/core';
+import { commands } from '@/services/cmds';
 
-const appTitle = 'uXueScript'; 
+const props = defineProps<{
+  appTitle: string;
+}>();
 
 const minimizeApp = () => {
-  invoke('minimize').catch(e => {
-    console.error('最小化失败:', e);
-  });
+  commands.minimize();
 };
 
 const closeApp = () => {
-  invoke('close').catch(e => {
-    console.error('关闭应用失败:', e);
-  });
+  commands.close();
 };
 
 </script>

@@ -1,25 +1,23 @@
 <script setup lang="ts">
-import { invoke } from '@tauri-apps/api/core';
-import { ref, onMounted } from 'vue';
 import ConfigPanel from '@/components/TheConfigPanel.vue';
 
+defineProps<{
+  version: string,
+  author: string,
+}>();
 
-const version = ref('2.0.0');
-const author = ref('unraous');
-
-onMounted(async () => {
-  try {
-    version.value = await invoke<string>('metadata', { key: 'version' });
-    author.value = await invoke<string>('metadata', { key: 'author' });
-  } catch (e) {
-    console.error("加载元数据失败，使用默认值", e);
-  }
-});
 </script>
 
 <template>
   <div class="right-container">
         <ConfigPanel />
+        <!-- 
+          Placeholder element for the Chaoxing WebView container.
+          Note: This element remains empty because Tauri's native child WebView window 
+          is dynamically positioned and overlayed according to the layout bounds and 
+          geometry of this placeholder (styled by .chaoxing-webview).
+          Therefore, no child nodes or Vue components are rendered within this element.
+        -->
         <div class="chaoxing-webview"></div>
         <div class="version-info">
           <p>by {{ author }} v{{ version }}</p>

@@ -12,6 +12,7 @@
   },
   "permissions": [
     "core:default",
+    "opener:default",
     "chaoxing-commands"
   ]
 }

@@ -1,28 +1,15 @@
 <script setup lang="ts">
 import { ref, watchEffect, onMounted } from 'vue';
-import { invoke } from '@tauri-apps/api/core';
 import BaseInput from './common/BaseInput.vue';
 import BaseToggle from './common/BaseToggle.vue';
+import { commands, OptionsConfig } from '@/services/cmds.ts';
 
-interface OptionConfig {
-  persistSession: boolean,
-  muteWebview: boolean,
-  speedLock: boolean,
-  speedValue: number,
-}
 
-const DEFAULT_OPTION: OptionConfig = {
-  persistSession: true,
-  muteWebview: true,
-  speedLock: false,
-  speedValue: 2.0,
-}
-
-const options = ref<OptionConfig>(DEFAULT_OPTION);
+const options = ref<OptionsConfig>();
 
 onMounted(async () => {
   try {
-    const res = await invoke<OptionConfig>('options');
+    const res = await commands.options();
     options.value = res;
   } catch (err) {
     console.error('获取配置失败:', err);
@@ -30,12 +17,11 @@ onMounted(async () => {
 });
 
 watchEffect((onCleanup) => {
-  const configPayload = { ...options.value };
-
+  
   const timer = setTimeout(async () => {
     try {
-      await invoke('set_options', { options: configPayload });
-      console.log('保存配置成功:', configPayload);
+      await commands.setOptions(options.value!);
+      console.log('保存配置成功:', options.value);
     } catch (err) {
       console.error('保存配置失败:', err);
     }
@@ -51,7 +37,7 @@ watchEffect((onCleanup) => {
 <template>
   <div class="course-config-panel">
     <h2 class="title">Course</h2>
-    <div class="settings-container">
+    <div v-if="options" class="settings-container">
       <BaseToggle v-model="options.persistSession" label="Perisist Session" />
       <BaseToggle v-model="options.muteWebview" label="Mute Course Webview" />
       <BaseToggle v-model="options.speedLock" label="Lock Playing Speed" />

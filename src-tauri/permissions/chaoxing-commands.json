@@ -8,7 +8,7 @@
                 ],
                 "deny": []
             },
-            "description": "permission for chaoxing commands",
+            "description": "allowing commands invocation for chaoxing webview",
             "identifier": "chaoxing-commands"
         }
     ]

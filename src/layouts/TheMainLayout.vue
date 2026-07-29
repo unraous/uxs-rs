@@ -2,15 +2,25 @@
 import MenuBar from '@/components/TheMenuBar.vue';
 import TheLeftLayout from './TheLeftLayout.vue';
 import TheRightLayout from './TheRightLayout.vue';
+import { onMounted, ref } from 'vue';
+import { commands, MetadataConfig } from '@/services/cmds.ts';
 
+const metadata = ref<MetadataConfig>();
+
+onMounted(async () => {
+  metadata.value = await commands.metadata();
+});
 </script>
 
 <template>
   <main class="container">
-    <MenuBar />
+    <MenuBar :app-title="metadata?.title ?? 'backend error'" />
     <div class="main-layout">
       <TheLeftLayout />
-      <TheRightLayout />
+      <TheRightLayout 
+        :author="metadata?.author ?? 'backend error'"
+        :version="metadata?.version ?? '0.0.0'"
+      />
     </div>
   </main>
 </template>

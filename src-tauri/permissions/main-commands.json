@@ -16,12 +16,13 @@
           "save_config",
           "set_key",
           "set_options",
+          "solve_quiz",
           "switch_model",
           "switch_provider"
         ],
         "deny": []
       },
-      "description": "permission for main commands",
+      "description": "allowing commands invocation for main webview",
       "identifier": "main-commands"
     }
   ]

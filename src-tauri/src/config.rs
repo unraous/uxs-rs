@@ -1,7 +1,7 @@
-mod metadata;
 mod path;
 
 pub mod llm;
+pub mod metadata;
 pub mod options;
 
 use llm::LLMConfig;
@@ -9,6 +9,7 @@ use metadata::MetadataConfig;
 use options::OptionsConfig;
 use path::PathsConfig;
 
+use anyhow::Result;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use std::sync::LazyLock;
@@ -37,7 +38,7 @@ impl Config {
         }
     }
 
-    pub fn save(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn save(&self) -> Result<()> {
         std::fs::write(&self.paths.files["config"], toml::to_string_pretty(&self)?)?;
         log::info!("配置已保存到 {}", self.paths.files["config"].display());
         Ok(())

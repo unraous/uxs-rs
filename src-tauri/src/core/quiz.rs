@@ -14,7 +14,7 @@ use anyhow::Result;
 /// A completely stateless, asynchronous function that takes raw HTML content,
 /// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
 /// solves them via the active LLM configured in CONFIG, and returns the solved AnswerItems.
-pub async fn execute_qa_workflow(html: &str) -> Result<Vec<AnswerItem>> {
+pub async fn solve_quiz_from(html: &str) -> Result<Vec<AnswerItem>> {
     let decrypted = decrypt(HtmlExtractPayload::new(html)?);
     CONFIG.llm.current().solve(decrypted).await
 }

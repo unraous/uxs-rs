@@ -2,10 +2,12 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import BaseLabel from './BaseLabel.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   label: string;
-  modelValue: boolean;
-}>();
+  modelValue?: boolean;
+}>(), {
+  modelValue: false,
+});
 
 const emit = defineEmits(['update:modelValue']);
 

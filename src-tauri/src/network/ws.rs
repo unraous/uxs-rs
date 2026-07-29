@@ -1,4 +1,4 @@
-use crate::core::quiz::execute_qa_workflow;
+use crate::core::quiz::solve_quiz_from;
 
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -31,7 +31,7 @@ async fn on_event(event: WSRequest, tx: mpsc::UnboundedSender<String>) {
         WSRequest::SolveQuestions { html } => {
             log::info!("开始处理 HTML 答题，长度: {}", html.len());
 
-            match execute_qa_workflow(&html).await {
+            match solve_quiz_from(&html).await {
                 Ok(answers) => {
                     log::info!("HTML 答题处理成功, 答案数量: {}", answers.len());
                     let resp = WSResponse::Success {

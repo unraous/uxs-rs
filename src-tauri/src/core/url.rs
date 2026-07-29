@@ -7,6 +7,7 @@ pub enum Type {
     MainSpace,
     Mask,
     Other,
+    Unknown,
 }
 
 /// Returns the type of the given URL based on its structure and domain.
@@ -21,7 +22,7 @@ pub fn classify(url: &tauri::Url) -> Type {
 
     if host != "chaoxing.com" && !host.ends_with(".chaoxing.com") {
         log::warn!("检测到非超星域名URL: {}", url.as_str());
-        return Type::Other;
+        return Type::Unknown;
     }
 
     let sub = host.split('.').next().unwrap_or_default();
@@ -54,5 +55,8 @@ mod tests {
 
         let url = "about:blank".parse().unwrap();
         assert_eq!(classify(&url), Type::Mask);
+
+        let url = "https://example.com".parse().unwrap();
+        assert_eq!(classify(&url), Type::Unknown);
     }
 }

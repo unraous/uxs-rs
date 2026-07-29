@@ -3,7 +3,7 @@ import xIconRaw from "@/assets/x.svg?raw";
 import mIconRaw from "@/assets/-.svg?raw";
 import { commands } from "@/services/cmds";
 
-const props = defineProps<{
+defineProps<{
   appTitle: string;
 }>();
 

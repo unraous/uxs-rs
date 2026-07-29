@@ -2,17 +2,27 @@
 import xIconRaw from "@/assets/x.svg?raw";
 import mIconRaw from "@/assets/-.svg?raw";
 import { commands } from "@/services/cmds";
+import { ref } from "vue";
 
 defineProps<{
   appTitle: string;
 }>();
 
-const minimizeApp = () => {
-  commands.minimize();
+const minimizeLock = ref(false);
+const closeLock = ref(false);
+
+const minimizeApp = async () => {
+  if (minimizeLock.value) return;
+  minimizeLock.value = true;
+  await commands.minimize();
+  minimizeLock.value = false;
 };
 
-const closeApp = () => {
-  commands.close();
+const closeApp = async () => {
+  if (closeLock.value) return;
+  closeLock.value = true;
+  await commands.close();
+  closeLock.value = false;
 };
 </script>
 

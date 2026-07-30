@@ -1,7 +1,7 @@
 (function hookLinkTargets() {
     console.info('[uXueScript] 开始全深度（穿透 iframe -> 强定向顶层 _top）窗口劫持...');
 
-    function hookDocument(doc) {
+    const hookDocument = (doc) => {
         if (!doc || doc._uxue_hooked) return;
         doc._uxue_hooked = true; // 标记防止重复绑定
 
@@ -29,9 +29,9 @@
                 }
             }
         }, true);
-    }
+    };
 
-    function scanAndHook(rootDoc = document) {
+    const scanAndHook = (rootDoc = document) => {
         hookDocument(rootDoc);
         const iframes = rootDoc.querySelectorAll('iframe');
         iframes.forEach(iframe => {
@@ -45,7 +45,7 @@
                 if (loadedDoc) scanAndHook(loadedDoc);
             });
         });
-    }
+    };
 
     scanAndHook();
     setInterval(scanAndHook, 1000);

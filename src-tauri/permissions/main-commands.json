@@ -8,6 +8,8 @@
           "close",
           "current_model",
           "current_provider",
+          "go_back",
+          "go_forward",
           "metadata",
           "minimize",
           "models",
@@ -16,6 +18,7 @@
           "save_config",
           "set_key",
           "set_options",
+          "set_zoom",
           "solve_quiz",
           "switch_model",
           "switch_provider"

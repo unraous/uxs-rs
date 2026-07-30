@@ -25,6 +25,9 @@ export const commands = {
 	setKey: (key: string) => __TAURI_INVOKE<void>("set_key", { key }),
 	/**  Save configuration to file. */
 	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
+	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
+	goBack: () => typedError<null, string>(__TAURI_INVOKE("go_back")),
+	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
 	/**  Close the application window with a fade-out animation. */
 	close: () => __TAURI_INVOKE<void>("close"),
 	/**  Minimize the application window. */

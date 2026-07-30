@@ -1,5 +1,9 @@
 use super::url::{classify, Type};
 
+use crate::app::webview::UrlStack;
+
+use tauri::Manager;
+
 /// 根据 URL 类型获取对应的 JavaScript 静态脚本内容。
 pub fn obtain(t: Type) -> Option<&'static str> {
     match t {
@@ -16,6 +20,11 @@ pub fn load_on(webview: tauri::Webview, payload: tauri::webview::PageLoadPayload
     if let tauri::webview::PageLoadEvent::Finished = payload.event() {
         let url_type = classify(payload.url());
         log::debug!("URL \"{}\" 加载完成, 类别: {:?}", payload.url(), url_type);
+
+        let url_stack = webview.state::<UrlStack>();
+        if url_stack.current().as_ref() != Some(payload.url()) {
+            url_stack.push(payload.url().clone());
+        }
 
         if let Some(script) = obtain(url_type) {
             log::debug!("正在注入脚本到Webview \"{}\"...", webview.label());

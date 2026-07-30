@@ -1,4 +1,8 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { commands } from '@/services/cmds';
+
+</script>
+
 
 <template>
   <div class="body">
@@ -8,7 +12,12 @@
     </div>
     <div class="tips">
       <h2>功能设置（占位）</h2>
-      <p>这里是功能设置区域，可以放置各种开关和选项。</p>
+      <p>
+        <button @click="commands.goBack">后退</button>
+        <button @click="commands.goForward">前进</button>
+        <button @click="commands.setZoom(0.5)">缩小</button>
+        <button @click="commands.setZoom(1.5)">放大</button>
+      </p>
     </div>
   </div>
 </template>

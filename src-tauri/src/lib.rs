@@ -6,6 +6,7 @@ pub mod core;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    use app::webview::UrlStack;
     use app::window;
 
     core::logger::init().expect("Failed to initialize logger");
@@ -18,7 +19,8 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(auto_handler::generate_auto_handler!())
+        .manage(UrlStack::default())
+        .invoke_handler(commands_collector::register!())
         .setup(window::init)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

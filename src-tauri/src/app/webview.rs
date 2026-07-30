@@ -3,12 +3,54 @@ use crate::core::{
     url::{classify, Type},
 };
 
-use anyhow;
-use log::debug;
-use tauri::{LogicalPosition, LogicalSize, Webview, WebviewBuilder, WebviewUrl};
+use anyhow::anyhow;
+use parking_lot::Mutex;
+use tauri::{LogicalPosition, LogicalSize, Url, Webview, WebviewBuilder, WebviewUrl};
+
+#[derive(Default)]
+pub struct UrlStack(Mutex<(Vec<Url>, usize)>);
+
+impl UrlStack {
+    pub fn push(&self, url: Url) {
+        if url.as_str() == "about:blank" {
+            return;
+        }
+        let (urls, index) = &mut *self.0.lock();
+        if urls.get(*index) != Some(&url) {
+            urls.truncate(*index + 1);
+            urls.push(url);
+            *index = urls.len().saturating_sub(1);
+        }
+    }
+
+    pub fn back(&self) -> Option<Url> {
+        let (urls, index) = &mut *self.0.lock();
+        if *index > 0 {
+            *index -= 1;
+            urls.get(*index).cloned()
+        } else {
+            None
+        }
+    }
+
+    pub fn current(&self) -> Option<Url> {
+        let (urls, index) = &*self.0.lock();
+        urls.get(*index).cloned()
+    }
+
+    pub fn forward(&self) -> Option<Url> {
+        let (urls, index) = &mut *self.0.lock();
+        if *index + 1 < urls.len() {
+            *index += 1;
+            urls.get(*index).cloned()
+        } else {
+            None
+        }
+    }
+}
 
 pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn std::error::Error>> {
-    debug!("开始初始化Webview [{}]", label);
+    log::debug!("开始初始化Webview [{}]", label);
     let logical_size: LogicalSize<f64> =
         tauri::LogicalSize::from_physical(window.inner_size()?, window.scale_factor()?);
 
@@ -35,12 +77,16 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
             LogicalPosition::new(logical_size.width * 0.51, logical_size.height * 0.46),
             LogicalSize::new(logical_size.width * 0.48, logical_size.height * 0.48),
         ),
-        _ => return Err(anyhow::anyhow!("未知的Webview标签").into()),
+        _ => return Err(anyhow!("未知的Webview标签").into()),
     };
 
-    debug!(
+    log::debug!(
         "Webview [{}] 初始化参数 - 位置: ({}, {}), 大小: ({}x{})",
-        label, position.x, position.y, size.width, size.height
+        label,
+        position.x,
+        position.y,
+        size.width,
+        size.height
     );
     Ok(window.add_child(builder, position, size)?)
 }

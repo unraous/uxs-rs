@@ -1,5 +1,6 @@
 pub mod config;
 pub mod quiz;
+pub mod webview;
 pub mod window;
 
 use serde::Serialize;
@@ -9,6 +10,8 @@ use specta::Type;
 pub enum CommandsError {
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
+    #[error(transparent)]
+    Tauri(#[from] tauri::Error),
 }
 
 impl Type for CommandsError {

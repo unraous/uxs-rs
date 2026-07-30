@@ -1,0 +1,15 @@
+[package]
+name = "commands_collector"
+version = "0.1.0"
+authors = ["unraous"]
+edition = "2021"
+description = "Procedural macro to automatically collect Tauri commands, generate auto handler, and sync permission JSON files."
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0"
+serde_json = "1.0"
+syn = { version = "2.0", features = ["full", "visit"] }
+walkdir = "2.4"

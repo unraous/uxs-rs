@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::deepseek::DeepSeekConfig;
+use crate::config::llm::DeepSeekConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

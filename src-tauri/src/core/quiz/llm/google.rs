@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::google::GoogleConfig;
+use crate::config::llm::GoogleConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

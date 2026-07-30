@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::bigmodel::BigModelConfig;
+use crate::config::llm::BigModelConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

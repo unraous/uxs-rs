@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::openai::OpenAIConfig;
+use crate::config::llm::OpenAIConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

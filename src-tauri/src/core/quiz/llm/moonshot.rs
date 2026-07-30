@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::moonshot::MoonshotConfig;
+use crate::config::llm::MoonshotConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

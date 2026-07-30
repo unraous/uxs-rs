@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::ollama::OllamaConfig;
+use crate::config::llm::OllamaConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

@@ -1,6 +1,6 @@
 use super::{AnswerItem, LLM, SYSTEM_PROMPT};
 
-use crate::config::llm::openrouter::OpenrouterConfig;
+use crate::config::llm::OpenrouterConfig;
 use crate::core::quiz::html::Question;
 
 use anyhow::Result;

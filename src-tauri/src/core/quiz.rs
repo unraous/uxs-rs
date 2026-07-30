@@ -1,8 +1,9 @@
-pub mod html;
+mod html;
+mod mapper;
+mod recognizer;
+mod render;
+
 pub mod llm;
-pub mod mapper;
-pub mod recognizer;
-pub mod render;
 
 use html::HtmlExtractPayload;
 use llm::AnswerItem;
@@ -11,10 +12,9 @@ use mapper::decrypt;
 use crate::config::CONFIG;
 use anyhow::Result;
 
-/// A completely stateless, asynchronous function that takes raw HTML content,
 /// dynamically extracts and decrypts obfuscated questions using the CRNN ONNX model,
 /// solves them via the active LLM configured in CONFIG, and returns the solved AnswerItems.
-pub async fn solve_quiz_from(html: &str) -> Result<Vec<AnswerItem>> {
+pub async fn solve(html: &str) -> Result<Vec<AnswerItem>> {
     let decrypted = decrypt(HtmlExtractPayload::new(html)?);
     CONFIG.llm.current().solve(decrypted).await
 }
@@ -22,7 +22,7 @@ pub async fn solve_quiz_from(html: &str) -> Result<Vec<AnswerItem>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::llm::bigmodel::BigModelConfig;
+    use crate::config::llm::BigModelConfig;
     use llm::LLM;
     use std::fs;
     use std::path::PathBuf;

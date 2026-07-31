@@ -18,7 +18,7 @@ import TheConfigLayout from "./TheConfigLayout.vue";
 }
 
 .info-panel {
-  height: 50%;
+  height: 45%;
   background-color: transparent;
 }
 </style>

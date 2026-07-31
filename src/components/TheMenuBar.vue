@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import xIconRaw from "@/assets/x.svg?raw";
-import mIconRaw from "@/assets/-.svg?raw";
+import xIconRaw from "@/assets/close.svg?raw";
+import mIconRaw from "@/assets/remove.svg?raw";
 import { commands } from "@/services/cmds";
 import { ref } from "vue";
 

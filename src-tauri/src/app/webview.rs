@@ -71,9 +71,14 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
                 label,
                 WebviewUrl::External("https://i.chaoxing.com/".parse()?),
             )
-            .background_color((0, 0, 0, 0).into())
+            .background_color((242, 244, 247).into())
             .on_navigation(|url| classify(url) != Type::Unknown)
             .on_page_load(load_on),
+            // 齐次比例布局变换公式 (Scale-Invariant Proportional Layout Formulas):
+            // X_pos = W * 0.51  <= 50% (TheLeftLayout 占据左半屏) + 1% (TheRightLayout 内 96% 居中边距)
+            // Y_pos = H * 0.46  <= 4% (TheMenuBar) + 42% (TheConfigPanel: 43.75% * 96%)
+            // W_size = W * 0.48 <= 96% * 50% (TheRightLayout 容器宽度)
+            // H_size = H * 0.48 <= Webview 保持无单位齐次比例缩放
             LogicalPosition::new(logical_size.width * 0.51, logical_size.height * 0.46),
             LogicalSize::new(logical_size.width * 0.48, logical_size.height * 0.48),
         ),

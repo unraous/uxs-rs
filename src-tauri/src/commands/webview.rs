@@ -49,3 +49,10 @@ pub fn go_forward(
         Err(anyhow!("无法前进：没有更新的历史页面").into())
     }
 }
+
+#[tauri::command]
+#[specta::specta]
+pub fn reload(window: window::Window) -> CommandsResult<()> {
+    chaoxing_webview(&window)?.reload()?;
+    Ok(())
+}

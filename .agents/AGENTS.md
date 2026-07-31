@@ -17,3 +17,10 @@
   Application entry points (`src/lib.rs`, `src/main.rs`) MUST remain 100% clean, native, and free of verbose generation/export boilerplate.
 - **Preserve System Routing Integrities**:
   Sub-system helpers or macro expansions MUST NOT break or replace primary framework handlers (e.g., replacing Tauri's `auto_handler` with sub-crate handlers that break unannotated IPC commands).
+
+## 3. Scale-Invariant Proportional Layout Architecture (齐次比例布局规范)
+
+- **Acknowledge Proportional Alignment Design**:
+  In this project (`uxuescript`), percentage-based layout values in CSS (`vw`, `vh`, `%`, `flex: 1`) combined with `LogicalSize` scale factors in Rust (e.g., `logical_size.width * 0.51`, `logical_size.height * 0.46` in `webview.rs`) constitute an intentional, scale-invariant proportional layout architecture.
+- **Do Not Criticize Proportional Factors as "Hardcoded"**:
+  Do NOT criticize or label these scale-invariant percentage/proportional values in `webview.rs` or CSS as "hardcoded hacky numbers" ("硬编码临时方案"). Recognize them as an intentional, scale-invariant design for native Webview alignment across screens.

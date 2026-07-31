@@ -17,7 +17,7 @@ const saveConfig = async () => {
       <TheCourseConfigPanel ref="courseConfigPanelRef" />
     </div>
     <div class="save-button" @click="saveConfig">
-      <BaseButton label="Save" style="width: 25%" />
+      <BaseButton label="Save" style="width: 35%; height: 60%; font-size: 1.5rem;" />
     </div>
   </div>
 </template>
@@ -47,7 +47,7 @@ const saveConfig = async () => {
 }
 
 .save-button {
-  height: 15%;
+  height: 20%;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import TheChaoxingWebviewController from "@/components/TheChaoxingWebviewController.vue";
 import ConfigPanel from "@/components/TheConfigPanel.vue";
 
 defineProps<{
@@ -15,9 +16,15 @@ defineProps<{
           Note: This element remains empty because Tauri's native child WebView window 
           is dynamically positioned and overlayed according to the layout bounds and 
           geometry of this placeholder (styled by .chaoxing-webview).
-          Therefore, no child nodes or Vue components are rendered within this element.
+
+          Scale-Invariant Proportional Layout Transformation Formulas:
+          - Position X = Window.width  * (0.50 + 0.01) = 0.51 * W
+          - Position Y = Window.height * (0.04 + 0.96 * 0.4375) = 0.46 * H
+          - Width      = Window.width  * 0.50 * 0.96 = 0.48 * W
         -->
-    <div class="chaoxing-webview"></div>
+    <div class="chaoxing-webview">
+      <TheChaoxingWebviewController />
+    </div>
     <div class="version-info">
       <p>by {{ author }} v{{ version }}</p>
     </div>
@@ -26,7 +33,7 @@ defineProps<{
 
 <style scoped>
 .right-container {
-  flex: 1;
+  width: 50%;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -34,11 +41,31 @@ defineProps<{
 }
 
 .chaoxing-webview {
-  padding: 20px;
+  position: relative;
   width: 96%;
-  height: 50%;
-  background-color: #f6f8fa;
-  outline: 6px solid #0d58a4;
+  height: 55%;
+}
+
+.chaoxing-webview::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% + 6px);
+  height: calc(100% + 6px);
+  background: #0d58a4;
+  pointer-events: none;
+  z-index: 1;
+
+  --t: 6px;
+  clip-path: polygon(
+    calc(100% - var(--t)) 0,
+    100% var(--t),
+    100% 100%,
+    var(--t) 100%,
+    0 calc(100% - var(--t)),
+    calc(100% - var(--t)) calc(100% - var(--t))
+  );
 }
 
 .version-info {

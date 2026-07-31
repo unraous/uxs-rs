@@ -28,6 +28,7 @@ export const commands = {
 	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
 	goBack: () => typedError<null, string>(__TAURI_INVOKE("go_back")),
 	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
+	reload: () => typedError<null, string>(__TAURI_INVOKE("reload")),
 	/**  Close the application window with a fade-out animation. */
 	close: () => __TAURI_INVOKE<void>("close"),
 	/**  Minimize the application window. */

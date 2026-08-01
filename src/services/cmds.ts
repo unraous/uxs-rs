@@ -26,6 +26,8 @@ export const commands = {
 	/**  Save configuration to file. */
 	saveConfig: () => typedError<null, string>(__TAURI_INVOKE("save_config")),
 	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
+	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
+	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),
 	goBack: () => typedError<null, string>(__TAURI_INVOKE("go_back")),
 	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
 	reload: () => typedError<null, string>(__TAURI_INVOKE("reload")),

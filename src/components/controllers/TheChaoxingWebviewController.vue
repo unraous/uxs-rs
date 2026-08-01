@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import zoomInIconRaw from "@/assets/zoom_in.svg?raw";
 import zoomOutIconRaw from "@/assets/zoom_out.svg?raw";
+import arrowIconRaw from "@/assets/arrow_forward.svg?raw";
+import refreshIconRaw from "@/assets/refresh.svg?raw";
 import { ref, computed, onMounted, watch } from "vue";
 import { listen } from "@tauri-apps/api/event";
 import Button from "@/components/base/Button.vue";
@@ -39,17 +41,62 @@ const zoomOut = () => {
 };
 
 const currentUrl = ref("等待页面加载...");
+const canGoBack = ref(false);
+const canGoForward = ref(false);
+
+const updateNavState = async () => {
+  try {
+    const [back, forward] = await Promise.all([
+      commands.canGoBack(),
+      commands.canGoForward(),
+    ]);
+    canGoBack.value = back;
+    canGoForward.value = forward;
+  } catch (err) {
+    console.error("获取导航状态失败:", err);
+  }
+};
 
 onMounted(async () => {
-  await listen("url-update", (event) => {
+  await Promise.all([updateNavState(), commands.reload()]);
+  await listen("url-update", async (event) => {
     currentUrl.value = event.payload as string;
+    await updateNavState();
   });
 });
 </script>
 
 <template>
   <div class="body">
-    <div class="navigation"></div>
+    <div class="navigation">
+      <Button
+        :icon-raw="arrowIconRaw"
+        @click="commands.goBack"
+        :disabled="!canGoBack"
+        color="#ebe2cf"
+        shape="circle"
+        size="2rem"
+        variant="translucent"
+        class="back-btn"
+      />
+      <Button
+        :icon-raw="arrowIconRaw"
+        @click="commands.goForward"
+        :disabled="!canGoForward"
+        color="#ebe2cf"
+        shape="circle"
+        size="2rem"
+        variant="translucent"
+      />
+      <Button
+        :icon-raw="refreshIconRaw"
+        @click="commands.reload"
+        color="#ebe2cf"
+        shape="circle"
+        size="2rem"
+        variant="translucent"
+      />
+    </div>
     <div class="capsule-slot">
       <p class="url-text">{{ currentUrl }}</p>
       <Button
@@ -86,6 +133,25 @@ onMounted(async () => {
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
+  padding: 2%;
+}
+
+.navigation {
+  width: 12%;
+  height: 90%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-right: auto;
+}
+
+:deep(.navigation .icon-raw) {
+  transform: scale(1.25);
+}
+
+:deep(.back-btn .icon-raw) {
+  transform: rotate(180deg) scale(1.25);
 }
 
 .url-text {

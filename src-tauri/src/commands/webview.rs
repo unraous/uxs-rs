@@ -21,6 +21,18 @@ pub fn set_zoom(window: window::Window, scale: f64) -> CommandsResult<()> {
 
 #[tauri::command]
 #[specta::specta]
+pub fn can_go_back(url_stack: tauri::State<'_, UrlStack>) -> bool {
+    url_stack.can_back()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn can_go_forward(url_stack: tauri::State<'_, UrlStack>) -> bool {
+    url_stack.can_forward()
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn go_back(
     window: window::Window,
     url_stack: tauri::State<'_, UrlStack>,

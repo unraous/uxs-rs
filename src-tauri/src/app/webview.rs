@@ -23,14 +23,23 @@ impl UrlStack {
         }
     }
 
+    pub fn can_back(&self) -> bool {
+        let (_, index) = &*self.0.lock();
+        *index > 0
+    }
+
+    pub fn can_forward(&self) -> bool {
+        let (urls, index) = &*self.0.lock();
+        *index + 1 < urls.len()
+    }
+
     pub fn back(&self) -> Option<Url> {
-        let (urls, index) = &mut *self.0.lock();
-        if *index > 0 {
-            *index -= 1;
-            urls.get(*index).cloned()
-        } else {
-            None
+        if !self.can_back() {
+            return None;
         }
+        let (urls, index) = &mut *self.0.lock();
+        *index -= 1;
+        urls.get(*index).cloned()
     }
 
     pub fn current(&self) -> Option<Url> {
@@ -39,13 +48,12 @@ impl UrlStack {
     }
 
     pub fn forward(&self) -> Option<Url> {
-        let (urls, index) = &mut *self.0.lock();
-        if *index + 1 < urls.len() {
-            *index += 1;
-            urls.get(*index).cloned()
-        } else {
-            None
+        if !self.can_forward() {
+            return None;
         }
+        let (urls, index) = &mut *self.0.lock();
+        *index += 1;
+        urls.get(*index).cloned()
     }
 }
 

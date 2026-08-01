@@ -131,6 +131,11 @@ const handleClick = (event: MouseEvent) => {
   user-select: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   will-change: transform;
+  transition: filter 0.25s ease;
+}
+
+.base-button:not(.disabled):hover {
+  filter: brightness(1.15);
 }
 
 /* 形状配置 */

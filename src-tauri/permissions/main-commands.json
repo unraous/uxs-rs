@@ -5,6 +5,8 @@
       "commands": {
         "allow": [
           "api_key",
+          "can_go_back",
+          "can_go_forward",
           "close",
           "current_model",
           "current_provider",

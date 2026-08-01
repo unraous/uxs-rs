@@ -69,7 +69,6 @@ export function useMagnetic(options: UseMagneticOptions) {
     if (disabled() || !outerRef.value) return;
     gsap.to(outerRef.value, {
       scale: 1.025,
-      filter: "brightness(1.15)",
       duration: 0.25,
       ease: "power2.out",
     });
@@ -122,7 +121,6 @@ export function useMagnetic(options: UseMagneticOptions) {
     if (disabled() || !outerRef.value) return;
     gsap.to(outerRef.value, {
       scale: 1.025,
-      filter: "brightness(1.15)",
       duration: 0.35,
       ease: "back.out(2)",
     });
@@ -142,7 +140,6 @@ export function useMagnetic(options: UseMagneticOptions) {
 
     gsap.to(outerRef.value, {
       scale: 1,
-      filter: "brightness(1)",
       duration: 0.45,
       ease: "back.out(2.5)",
     });

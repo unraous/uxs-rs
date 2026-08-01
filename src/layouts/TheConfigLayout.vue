@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import BaseButton from "@/components/common/BaseButton.vue";
-import TheAPIPanel from "@/components/TheAPIPanel.vue";
-import TheCourseConfigPanel from "@/components/TheCourseConfigPanel.vue";
-import { invoke } from "@tauri-apps/api/core";
-
-const saveConfig = async () => {
-  await invoke("save_config");
-};
+import Button from "@/components/base/Button.vue";
+import TheAPIPanel from "@/components/panels/TheAPIPanel.vue";
+import TheCourseConfigPanel from "@/components/panels/TheCourseConfigPanel.vue";
+import { commands } from "@/services/cmds";
 </script>
 
 <template>
@@ -16,8 +12,8 @@ const saveConfig = async () => {
       <TheAPIPanel ref="apiPanelRef" />
       <TheCourseConfigPanel ref="courseConfigPanelRef" />
     </div>
-    <div class="save-button" @click="saveConfig">
-      <BaseButton label="Save" style="width: 35%; height: 60%; font-size: 1.5rem;" />
+    <div class="save-button" @click="commands.saveConfig">
+      <Button label="Save" style="width: 35%; height: 60%; font-size: 1.5rem" />
     </div>
   </div>
 </template>

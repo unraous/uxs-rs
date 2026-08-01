@@ -3,7 +3,7 @@ import zoomInIconRaw from "@/assets/zoom_in.svg?raw";
 import zoomOutIconRaw from "@/assets/zoom_out.svg?raw";
 import { ref, computed, onMounted, watch } from "vue";
 import { listen } from "@tauri-apps/api/event";
-import BaseButton from "./common/BaseButton.vue";
+import Button from "@/components/base/Button.vue";
 import { commands } from "@/services/cmds";
 
 // Webview 缩放控制阶梯表
@@ -52,20 +52,20 @@ onMounted(async () => {
     <div class="navigation"></div>
     <div class="capsule-slot">
       <p class="url-text">{{ currentUrl }}</p>
-      <BaseButton
-        :icon-raw="zoomInIconRaw"
-        @click="zoomIn"
-        :disabled="!canZoomIn"
+      <Button
+        :icon-raw="zoomOutIconRaw"
+        @click="zoomOut"
+        :disabled="!canZoomOut"
         color="#0d58a4"
         shape="circle"
         size="1.75rem"
         variant="translucent"
       />
       <span class="zoom-value">{{ currentZoomText }}</span>
-      <BaseButton
-        :icon-raw="zoomOutIconRaw"
-        @click="zoomOut"
-        :disabled="!canZoomOut"
+      <Button
+        :icon-raw="zoomInIconRaw"
+        @click="zoomIn"
+        :disabled="!canZoomIn"
         color="#0d58a4"
         shape="circle"
         size="1.75rem"
@@ -99,6 +99,8 @@ onMounted(async () => {
 }
 
 .zoom-value {
+  width: 7.5%;
+  text-align: center;
   font-size: 0.85rem;
 }
 

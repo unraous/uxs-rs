@@ -2,7 +2,7 @@
 import { computed, useId } from "vue";
 
 const props = defineProps<{
-  modelValue: any;
+  modelValue: string | number;
   placeholder?: string;
   pattern?: string;
   id?: string;
@@ -20,7 +20,7 @@ const onInput = (event: Event) => {
     value !== "" &&
     !new RegExp(`^(?:${props.pattern})$`).test(value)
   ) {
-    target.value = props.modelValue || "";
+    target.value = String(props.modelValue ?? "");
     return;
   }
 
@@ -30,18 +30,17 @@ const onInput = (event: Event) => {
 
 <template>
   <div class="base-text-box">
-    <div class="input-container">
-      <input
-        :id="inputId"
-        :value="modelValue"
-        :placeholder="placeholder"
-        :pattern="pattern"
-        class="input-field"
-        @input="onInput"
-        @change="$emit('change', $event)"
-      />
-      <div class="shadow-shell"></div>
-    </div>
+    <input
+      :id="inputId"
+      :value="modelValue"
+      :placeholder="placeholder"
+      :pattern="pattern"
+      autocomplete="off"
+      class="input-field"
+      @input="onInput"
+      @change="$emit('change', $event)"
+    />
+    <div class="shadow-shell"></div>
   </div>
 </template>
 
@@ -52,11 +51,6 @@ const onInput = (event: Event) => {
   --base-thickness: 2px;
   --lift-thickness: 5px;
 
-  display: flex;
-  flex-direction: column;
-}
-
-.input-container {
   position: relative;
   width: 100%;
 }

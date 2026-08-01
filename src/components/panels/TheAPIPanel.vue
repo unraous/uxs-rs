@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import BaseInput from "./common/BaseInput.vue";
-import BaseSelecter from "./common/BaseSelecter.vue";
+import Input from "@/components/base/Input.vue";
+import Selector from "@/components/base/Selector.vue";
 import { commands } from "@/services/cmds.ts";
 
 const provider = ref(0);
@@ -57,11 +57,13 @@ watch(model, async () => {
   <div class="api-panel">
     <h2 class="title">API</h2>
     <div class="settings-container">
-      <BaseSelecter v-model="provider" label="Provider" :options="providers" />
-      <BaseSelecter v-model="model" label="Model" :options="models" />
-      <BaseInput
+      <Selector v-model="provider" label="Provider" :options="providers" />
+      <Selector v-model="model" label="Model" :options="models" />
+      <Input
+        id="api-key-input"
         v-model="apiKey"
         label="API Key"
+        aria-label="API Key"
         @change="commands.setKey(apiKey)"
       />
     </div>

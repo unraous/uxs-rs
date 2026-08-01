@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { useRipple } from "@/effects/useRipple";
-import { useMagnetic } from "@/effects/useMagnetic";
+import { useRipple } from "@/composables/useRipple";
+import { useMagnetic } from "@/composables/useMagnetic";
 
 const buttonRef = ref<HTMLElement | null>(null);
 const contentRef = ref<HTMLElement | null>(null);
@@ -41,7 +41,7 @@ const { createRipple } = useRipple({
   duration: 0.8,
 });
 
-/** 分离 mouseup 与 mouseleave 的平滑全连贯磁吸 */
+/** 使用拆离组合式设计的精致微幅双层视差磁吸 */
 const {
   handleMouseEnter,
   handleMouseMove,
@@ -52,7 +52,7 @@ const {
   outerRef: buttonRef,
   innerRef: contentRef,
   outerFactor: 0.12,
-  innerFactor: 0.22,
+  innerFactor: 0.36,
   maxDistance: 25,
   disabled: () => props.disabled,
   onMouseDown: (event) => createRipple(event, props.disabled),

@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
-import BaseLabel from "./BaseLabel.vue";
+import { ref, onMounted, onUnmounted, computed, useId } from "vue";
+import Label from "./Label.vue";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     modelValue: number;
     label: string;
     options?: string[];
+    id?: string;
   }>(),
   {
     options: () => ["undefined", "option1", "option2", "option3"],
   },
 );
+
+const selectId = computed(() => props.id || useId());
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: number): void;
@@ -32,14 +35,17 @@ onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 
 <template>
   <div class="base-config-select">
-    <BaseLabel :label="label" />
+    <Label :label="label" :for="selectId" :aria-label="label" />
 
     <div class="input-section" ref="dropdownRef">
       <div
-        :id="label"
+        :id="selectId"
         class="select-trigger"
         :class="{ 'is-open': isOpen }"
         @click="isOpen = !isOpen"
+        @keydown.space.prevent="isOpen = !isOpen"
+        @keydown.enter.prevent="isOpen = !isOpen"
+        @keydown.escape.prevent="isOpen = false"
       >
         <span class="selected-text">{{ options?.[modelValue] ?? "" }}</span>
         <span class="select-arrow" :class="{ 'is-open': isOpen }">

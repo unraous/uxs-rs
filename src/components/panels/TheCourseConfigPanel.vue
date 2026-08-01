@@ -1,10 +1,21 @@
 <script setup lang="ts">
-import { ref, watchEffect, onMounted } from "vue";
-import BaseInput from "./common/BaseInput.vue";
-import BaseToggle from "./common/BaseToggle.vue";
+import { ref, computed, onMounted } from "vue";
+import Input from "@/components/base/Input.vue";
+import Toggle from "@/components/base/Toggle.vue";
 import { commands, OptionsConfig } from "@/services/cmds.ts";
 
 const options = ref<OptionsConfig>();
+
+const speedValue = computed<number>({
+  get() {
+    return options.value?.speedValue ?? 1;
+  },
+  set(val: number) {
+    if (options.value) {
+      options.value.speedValue = val;
+    }
+  },
+});
 
 onMounted(async () => {
   try {
@@ -14,33 +25,22 @@ onMounted(async () => {
     console.error("获取配置失败:", err);
   }
 });
-
-watchEffect((onCleanup) => {
-  const timer = setTimeout(async () => {
-    try {
-      await commands.setOptions(options.value!);
-      console.log("保存配置成功:", options.value);
-    } catch (err) {
-      console.error("保存配置失败:", err);
-    }
-  }, 300);
-
-  onCleanup(() => {
-    clearTimeout(timer);
-  });
-});
 </script>
 
 <template>
   <div class="course-config-panel">
     <h2 class="title">Course</h2>
     <div v-if="options" class="settings-container">
-      <BaseToggle v-model="options.persistSession" label="Perisist Session" />
-      <BaseToggle v-model="options.muteWebview" label="Mute Course Webview" />
-      <BaseToggle v-model="options.speedLock" label="Lock Playing Speed" />
-      <BaseInput
-        v-model.number="options.speedValue"
+      <Toggle v-model="options.persistSession" label="Perisist Session" />
+      <Toggle v-model="options.muteWebview" label="Mute Course Webview" />
+      <Toggle v-model="options.speedLock" label="Lock Playing Speed" />
+      <Input
+        id="playing-speed-input"
+        v-model.number="speedValue"
+        placeholder="input number here"
         label="Playing Speed"
+        aria-label="Playing Speed"
+        @change="commands.setOptions(options!)"
         pattern="\d+(?:\.\d*)?"
         class="speed-input"
       />

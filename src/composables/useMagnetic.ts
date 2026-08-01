@@ -6,11 +6,11 @@ export interface UseMagneticOptions {
   outerRef: Ref<HTMLElement | null>;
   /** 内层视差内容 DOM 引用（可选） */
   innerRef?: Ref<HTMLElement | null>;
-  /** 外层磁吸拉力系数（默认 0.12） */
+  /** 外层磁吸拉力系数（默认 0.12，数值越小磁吸位移越小） */
   outerFactor?: number;
   /** 内层视差拉力系数（默认 0.22） */
   innerFactor?: number;
-  /** 最大偏移像素阈值/半径限制（可选，如 25px） */
+  /** 最大偏移像素阈值/半径限制（可选，如 25px，防止拉伸过大） */
   maxDistance?: number;
   /** 动画平滑响应时间（秒，默认 0.35s） */
   duration?: number;
@@ -35,10 +35,10 @@ export function useMagnetic(options: UseMagneticOptions) {
     onMouseDown,
   } = options;
 
-  let btnXTo: ((val: number) => void) | null = null;
-  let btnYTo: ((val: number) => void) | null = null;
-  let contentXTo: ((val: number) => void) | null = null;
-  let contentYTo: ((val: number) => void) | null = null;
+  let btnXTo: ReturnType<typeof gsap.quickTo> | null = null;
+  let btnYTo: ReturnType<typeof gsap.quickTo> | null = null;
+  let contentXTo: ReturnType<typeof gsap.quickTo> | null = null;
+  let contentYTo: ReturnType<typeof gsap.quickTo> | null = null;
 
   /** 懒加载初始化 GSAP quickTo 管道 */
   const initQuickTo = () => {
@@ -118,7 +118,6 @@ export function useMagnetic(options: UseMagneticOptions) {
     });
   };
 
-  /** 鼠标松开（在按钮内部）：只恢复 hover 的 scale 状态，不归零 x/y 磁吸 */
   const handleMouseUp = () => {
     if (disabled() || !outerRef.value) return;
     gsap.to(outerRef.value, {
@@ -129,9 +128,8 @@ export function useMagnetic(options: UseMagneticOptions) {
     });
   };
 
-  /** 鼠标完全离开按钮：此时才复位 x/y 到 0 */
   const handleMouseLeave = () => {
-    if (disabled() || !outerRef.value) return;
+    if (!outerRef.value) return;
 
     if (btnXTo && btnYTo) {
       btnXTo(0);

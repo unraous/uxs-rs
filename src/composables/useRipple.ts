@@ -11,7 +11,7 @@ export interface UseRippleOptions {
  * 基于 GSAP 的高斯/波纹涟漪特效 Composable
  */
 export function useRipple(options: UseRippleOptions = {}) {
-  const { scale = 2.0, duration = 0.8 } = options;
+  const { scale = 2.0, duration = 0.6 } = options;
 
   /**
    * 触发生成波纹并在动画结束后利用 GSAP 自动销毁 DOM

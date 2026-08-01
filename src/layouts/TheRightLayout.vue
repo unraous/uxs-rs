@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import TheChaoxingWebviewController from "@/components/TheChaoxingWebviewController.vue";
-import ConfigPanel from "@/components/TheConfigPanel.vue";
+import TheChaoxingWebviewController from "@/components/controllers/TheChaoxingWebviewController.vue";
+import ConfigPanel from "@/components/panels/TheConfigPanel.vue";
 
 defineProps<{
   version: string;

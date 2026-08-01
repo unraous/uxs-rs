@@ -1,13 +1,14 @@
 <script setup lang="ts">
 defineProps<{
   label: string;
+  for?: string;
 }>();
 </script>
 
 <template>
-  <span class="label-text">
+  <label :for="$props.for" class="label-text">
     {{ label }}
-  </span>
+  </label>
 </template>
 
 <style scoped>

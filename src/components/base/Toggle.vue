@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from "vue";
-import BaseLabel from "./BaseLabel.vue";
+import { ref, watch, onMounted, onUnmounted, computed, useId } from "vue";
+import Label from "./Label.vue";
 
 const props = withDefaults(
   defineProps<{
     label: string;
     modelValue?: boolean;
+    id?: string;
   }>(),
   {
     modelValue: false,
@@ -13,6 +14,7 @@ const props = withDefaults(
 );
 
 const emit = defineEmits(["update:modelValue"]);
+const toggleId = computed(() => props.id || useId());
 
 // 初始旋转角度
 const rotationAngle = ref(180);
@@ -51,10 +53,19 @@ onUnmounted(() => timer && clearTimeout(timer));
 
 <template>
   <div class="base-config-input">
-    <BaseLabel :label="label" />
+    <Label :label="label" :for="toggleId" :aria-label="label" />
 
     <div class="input-section">
-      <div class="bowl-toggle" @click="toggle">
+      <div
+        :id="toggleId"
+        class="bowl-toggle"
+        role="switch"
+        :aria-checked="modelValue"
+        tabindex="0"
+        @click="toggle"
+        @keydown.space.prevent="toggle"
+        @keydown.enter.prevent="toggle"
+      >
         <!-- 变量控制中心 -->
         <div class="canvas-area">
           <div

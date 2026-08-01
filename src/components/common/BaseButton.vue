@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { gsap } from "gsap";
 import { useRipple } from "@/effects/useRipple";
+import { useMagnetic } from "@/effects/useMagnetic";
 
 const buttonRef = ref<HTMLElement | null>(null);
+const contentRef = ref<HTMLElement | null>(null);
 
 const props = withDefaults(
   defineProps<{
@@ -37,7 +38,24 @@ const emit = defineEmits<{
 
 const { createRipple } = useRipple({
   scale: props.shape === "circle" ? 2.0 : 2.5,
-  duration: 0.6,
+  duration: 0.8,
+});
+
+/** 分离 mouseup 与 mouseleave 的平滑全连贯磁吸 */
+const {
+  handleMouseEnter,
+  handleMouseMove,
+  handleMouseDown,
+  handleMouseUp,
+  handleMouseLeave,
+} = useMagnetic({
+  outerRef: buttonRef,
+  innerRef: contentRef,
+  outerFactor: 0.12,
+  innerFactor: 0.22,
+  maxDistance: 25,
+  disabled: () => props.disabled,
+  onMouseDown: (event) => createRipple(event, props.disabled),
 });
 
 /** 动态计算尺寸与背景样式 */
@@ -67,37 +85,6 @@ const handleClick = (event: MouseEvent) => {
     emit("click", event);
   }
 };
-
-/** GSAP 物理交互动画 */
-const handleMouseEnter = () => {
-  if (props.disabled || !buttonRef.value) return;
-  gsap.to(buttonRef.value, {
-    scale: 1.025,
-    filter: "brightness(1.15)",
-    duration: 0.25,
-    ease: "power2.out",
-  });
-};
-
-const handleMouseDown = (event: MouseEvent) => {
-  createRipple(event, props.disabled);
-  if (props.disabled || !buttonRef.value) return;
-  gsap.to(buttonRef.value, {
-    scale: 0.95,
-    duration: 0.1,
-    ease: "power1.out",
-  });
-};
-
-const handleMouseRelease = () => {
-  if (props.disabled || !buttonRef.value) return;
-  gsap.to(buttonRef.value, {
-    scale: 1,
-    filter: "brightness(1)",
-    duration: 0.45,
-    ease: "back.out(2.5)",
-  });
-};
 </script>
 
 <template>
@@ -111,13 +98,14 @@ const handleMouseRelease = () => {
     ]"
     :style="buttonStyle"
     @mouseenter="handleMouseEnter"
-    @mouseleave="handleMouseRelease"
+    @mousemove="handleMouseMove"
+    @mouseleave="handleMouseLeave"
     @mousedown="handleMouseDown"
-    @mouseup="handleMouseRelease"
+    @mouseup="handleMouseUp"
     @click="handleClick"
   >
-    <!-- 内容层 (支持插槽/文字/SVG) -->
-    <div class="content">
+    <!-- 内容层 (支持插槽/文字/SVG，绑定 contentRef 实现微幅视差) -->
+    <div ref="contentRef" class="content">
       <slot>
         <span
           v-if="props.iconRaw"
@@ -142,6 +130,7 @@ const handleMouseRelease = () => {
   outline: none;
   user-select: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  will-change: transform;
 }
 
 /* 形状配置 */
@@ -192,6 +181,8 @@ const handleMouseRelease = () => {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  pointer-events: none;
+  will-change: transform;
 }
 
 .icon-raw {

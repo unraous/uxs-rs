@@ -17,6 +17,20 @@ const speedValue = computed<number>({
   },
 });
 
+const setOptions = async () => {
+  if (!options.value) return;
+  try {
+    await commands.setOptions(options.value);
+    console.log("设置课程配置成功:", options.value);
+  } catch (err) {
+    console.error("设置课程配置失败:", err);
+  }
+};
+
+defineExpose({
+  setOptions,
+});
+
 onMounted(async () => {
   try {
     const res = await commands.options();
@@ -40,7 +54,7 @@ onMounted(async () => {
         placeholder="input number here"
         label="Playing Speed"
         aria-label="Playing Speed"
-        @change="commands.setOptions(options!)"
+        @change="setOptions"
         pattern="\d+(?:\.\d*)?"
         class="speed-input"
       />

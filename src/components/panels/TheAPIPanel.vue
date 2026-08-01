@@ -29,6 +29,14 @@ const loadProvider = async () => {
   apiKey.value = fetchedApiKey;
 };
 
+const setKey = async () => {
+  await commands.setKey(apiKey.value);
+};
+
+defineExpose({
+  setKey,
+});
+
 onMounted(async () => {
   const [fetchedProviders, currentProvider] = await Promise.all([
     commands.providers(),
@@ -64,7 +72,7 @@ watch(model, async () => {
         v-model="apiKey"
         label="API Key"
         aria-label="API Key"
-        @change="commands.setKey(apiKey)"
+        @change="setKey"
       />
     </div>
   </div>

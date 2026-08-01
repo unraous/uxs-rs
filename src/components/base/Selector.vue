@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, useId } from "vue";
+import { ref, onMounted, computed, useId } from "vue";
 import Label from "./Label.vue";
 
 const props = withDefaults(
@@ -30,7 +30,6 @@ const handleClickOutside = (event: MouseEvent) => {
 };
 
 onMounted(() => document.addEventListener("click", handleClickOutside));
-onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 </script>
 
 <template>

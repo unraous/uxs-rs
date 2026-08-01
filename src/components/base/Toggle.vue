@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed, useId } from "vue";
+import { ref, watch, onMounted, computed, useId } from "vue";
 import Label from "./Label.vue";
 
 const props = withDefaults(
@@ -48,7 +48,6 @@ watch(
 );
 
 onMounted(() => handleStateUpdate(props.modelValue, true));
-onUnmounted(() => timer && clearTimeout(timer));
 </script>
 
 <template>

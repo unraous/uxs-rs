@@ -3,6 +3,20 @@ import Button from "@/components/base/Button.vue";
 import TheAPIPanel from "@/components/panels/TheAPIPanel.vue";
 import TheCourseConfigPanel from "@/components/panels/TheCourseConfigPanel.vue";
 import { commands } from "@/services/cmds";
+import { ref } from "vue";
+
+const apiPanelRef = ref<InstanceType<typeof TheAPIPanel> | null>(null);
+const courseConfigPanelRef = ref<InstanceType<
+  typeof TheCourseConfigPanel
+> | null>(null);
+
+const saveConfig = async () => {
+  await Promise.all([
+    apiPanelRef.value?.setKey(),
+    courseConfigPanelRef.value?.setOptions(),
+  ]).catch((e) => console.error("设置配置失败: ", e));
+  await commands.saveConfig().catch((e) => console.error("保存配置失败: ", e));
+};
 </script>
 
 <template>
@@ -12,7 +26,7 @@ import { commands } from "@/services/cmds";
       <TheAPIPanel ref="apiPanelRef" />
       <TheCourseConfigPanel ref="courseConfigPanelRef" />
     </div>
-    <div class="save-button" @click="commands.saveConfig">
+    <div class="save-button" @click="saveConfig">
       <Button label="Save" style="width: 35%; height: 60%; font-size: 1.5rem" />
     </div>
   </div>

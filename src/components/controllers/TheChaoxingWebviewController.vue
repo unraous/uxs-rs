@@ -3,8 +3,8 @@ import zoomInIconRaw from "@/assets/zoom_in.svg?raw";
 import zoomOutIconRaw from "@/assets/zoom_out.svg?raw";
 import arrowIconRaw from "@/assets/arrow_forward.svg?raw";
 import refreshIconRaw from "@/assets/refresh.svg?raw";
-import { ref, computed, onMounted, watch } from "vue";
-import { listen } from "@tauri-apps/api/event";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import Button from "@/components/base/Button.vue";
 import { commands } from "@/services/cmds";
 
@@ -16,12 +16,9 @@ const ZOOM_LEVELS = [
 
 const zoomIndex = ref(7); // index to 100%
 
-/** 当前响应式缩放倍率数值 */
-const currentScale = computed(() => ZOOM_LEVELS[zoomIndex.value] ?? 1.0);
-
 /** 当前响应式缩放百分比文本 (如 '100%') */
 const currentZoomText = computed(
-  () => `${Math.round(currentScale.value * 100)}%`,
+  () => `${Math.round((ZOOM_LEVELS[zoomIndex.value] ?? 1.0) * 100)}%`,
 );
 
 const canZoomIn = computed(() => zoomIndex.value < ZOOM_LEVELS.length - 1);
@@ -40,29 +37,43 @@ const zoomOut = () => {
   zoomIndex.value--;
 };
 
-const currentUrl = ref("等待页面加载...");
+const currentUrl = ref("");
 const canGoBack = ref(false);
 const canGoForward = ref(false);
+let unlistenUrlUpdate: UnlistenFn | null = null;
 
 const updateNavState = async () => {
   try {
-    const [back, forward] = await Promise.all([
+    const [back, forward, url] = await Promise.all([
       commands.canGoBack(),
       commands.canGoForward(),
+      commands.currentUrl(),
     ]);
     canGoBack.value = back;
     canGoForward.value = forward;
+    currentUrl.value = url ?? "";
   } catch (err) {
     console.error("获取导航状态失败:", err);
   }
 };
 
 onMounted(async () => {
-  await Promise.all([updateNavState(), commands.reload()]);
-  await listen("url-update", async (event) => {
-    currentUrl.value = event.payload as string;
-    await updateNavState();
-  });
+  updateNavState();
+  try {
+    unlistenUrlUpdate = await listen("url-update", async (event) => {
+      currentUrl.value = event.payload as string;
+      await updateNavState();
+    });
+  } catch (err) {
+    console.error("注册 URL 监听失败:", err);
+  }
+});
+
+onUnmounted(() => {
+  if (unlistenUrlUpdate) {
+    unlistenUrlUpdate();
+    unlistenUrlUpdate = null;
+  }
 });
 </script>
 

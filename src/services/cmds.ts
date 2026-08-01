@@ -30,6 +30,7 @@ export const commands = {
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),
 	goBack: () => typedError<null, string>(__TAURI_INVOKE("go_back")),
 	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
+	currentUrl: () => __TAURI_INVOKE<string | null>("current_url"),
 	reload: () => typedError<null, string>(__TAURI_INVOKE("reload")),
 	/**  Close the application window with a fade-out animation. */
 	close: () => __TAURI_INVOKE<void>("close"),

@@ -27,9 +27,7 @@ impl Default for CrnnEngine {
             Ok(model)
         })()
         .expect("无法初始化 CRNN OCR 模型。请检查模型文件是否完整或硬件环境。");
-
         log::debug!("CRNN 模型与标签加载成功");
-
         let labels = include_str!("../../../model/keys.txt").lines().collect();
 
         CrnnEngine { model, labels }

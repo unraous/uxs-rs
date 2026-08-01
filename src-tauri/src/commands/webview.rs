@@ -64,6 +64,12 @@ pub fn go_forward(
 
 #[tauri::command]
 #[specta::specta]
+pub fn current_url(url_stack: tauri::State<'_, UrlStack>) -> Option<String> {
+    url_stack.current().map(|url| url.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn reload(window: window::Window) -> CommandsResult<()> {
     chaoxing_webview(&window)?.reload()?;
     Ok(())

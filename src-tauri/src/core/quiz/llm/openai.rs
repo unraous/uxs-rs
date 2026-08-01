@@ -27,11 +27,11 @@ impl LLM for OpenAIConfig {
     async fn solve(&self, question: Vec<Question>) -> Result<Vec<AnswerItem>> {
         log::debug!("将使用 OpenAI 模型 {} 进行推理", *self.chosen_model.lock());
 
-        let request_body = serde_json::json!({
-            "model": *self.chosen_model.lock(),
-            "instructions": SYSTEM_PROMPT,
-            "input": serde_json::to_string(&question)?,
-        });
+        let mut request_body: serde_json::Value =
+            serde_json::from_str(include_str!("./openai-request.json"))?;
+        request_body["model"] = serde_json::json!(*self.chosen_model.lock());
+        request_body["instructions"] = serde_json::json!(SYSTEM_PROMPT);
+        request_body["input"] = serde_json::json!(serde_json::to_string(&question)?);
 
         let response = reqwest::Client::new()
             .post("https://api.openai.com/v1/responses")

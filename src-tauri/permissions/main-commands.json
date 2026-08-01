@@ -10,6 +10,7 @@
           "close",
           "current_model",
           "current_provider",
+          "current_url",
           "go_back",
           "go_forward",
           "metadata",

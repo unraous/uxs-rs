@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TheChaoxingWebviewController from "@/components/controllers/TheChaoxingWebviewController.vue";
-import ConfigPanel from "@/components/panels/TheConfigPanel.vue";
+import TheCourseInfoPanel from "@/components/panels/TheCourseInfoPanel.vue";
 
 defineProps<{
   version: string;
@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <div class="right-container">
-    <ConfigPanel />
+    <TheCourseInfoPanel />
     <!-- 
           Placeholder element for the Chaoxing WebView container.
           Note: This element remains empty because Tauri's native child WebView window 

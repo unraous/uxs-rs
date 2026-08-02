@@ -130,8 +130,12 @@ const handleClick = (event: MouseEvent) => {
   outline: none;
   user-select: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  will-change: transform;
-  transition: filter 0.25s ease;
+  will-change: transform, opacity, filter;
+  transition:
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.25s ease,
+    box-shadow 0.3s ease;
 }
 
 .base-button:not(.disabled):hover {
@@ -208,5 +212,7 @@ const handleClick = (event: MouseEvent) => {
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
+  transform: scale(0.95);
+  filter: grayscale(0.5);
 }
 </style>

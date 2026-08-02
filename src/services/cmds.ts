@@ -28,6 +28,7 @@ export const commands = {
 	setZoom: (scale: number | null) => typedError<null, string>(__TAURI_INVOKE("set_zoom", { scale })),
 	canGoBack: () => __TAURI_INVOKE<boolean>("can_go_back"),
 	canGoForward: () => __TAURI_INVOKE<boolean>("can_go_forward"),
+	goHome: () => typedError<null, string>(__TAURI_INVOKE("go_home")),
 	goBack: () => typedError<null, string>(__TAURI_INVOKE("go_back")),
 	goForward: () => typedError<null, string>(__TAURI_INVOKE("go_forward")),
 	currentUrl: () => __TAURI_INVOKE<string | null>("current_url"),
@@ -43,7 +44,8 @@ export type MetadataConfig = {
 	author?: string,
 	title?: string,
 	version?: string,
-	log_level?: string,
+	homeUrl?: string,
+	logLevel?: string,
 };
 
 export type OptionsConfig = {

@@ -13,6 +13,7 @@
           "current_url",
           "go_back",
           "go_forward",
+          "go_home",
           "metadata",
           "minimize",
           "models",

@@ -3,6 +3,7 @@ import zoomInIconRaw from "@/assets/zoom_in.svg?raw";
 import zoomOutIconRaw from "@/assets/zoom_out.svg?raw";
 import arrowIconRaw from "@/assets/arrow_forward.svg?raw";
 import refreshIconRaw from "@/assets/refresh.svg?raw";
+import homeIconRaw from "@/assets/home.svg?raw";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import Button from "@/components/base/Button.vue";
@@ -30,16 +31,13 @@ watch(zoomIndex, async (newIndex) => {
   });
 });
 
-const zoomIn = () => {
-  zoomIndex.value++;
-};
-const zoomOut = () => {
-  zoomIndex.value--;
-};
+const zoomIn = () => zoomIndex.value++;
+const zoomOut = () => zoomIndex.value--;
 
 const currentUrl = ref("");
 const canGoBack = ref(false);
 const canGoForward = ref(false);
+const isNavigating = ref(false);
 let unlistenUrlUpdate: UnlistenFn | null = null;
 
 const updateNavState = async () => {
@@ -54,8 +52,49 @@ const updateNavState = async () => {
     currentUrl.value = url ?? "";
   } catch (err) {
     console.error("获取导航状态失败:", err);
+  } finally {
+    isNavigating.value = false;
   }
 };
+
+/** 导航防抖锁高阶包装函数 */
+const withNavLock = (
+  action: () => Promise<unknown>,
+  condition: () => boolean = () => true,
+  errMsg = "导航失败:",
+) => {
+  return async () => {
+    if (isNavigating.value || !condition()) return;
+    isNavigating.value = true;
+    try {
+      await action();
+    } catch (err) {
+      console.error(errMsg, err);
+      isNavigating.value = false;
+    }
+  };
+};
+
+const handleGoBack = withNavLock(
+  () => commands.goBack(),
+  () => canGoBack.value,
+  "后退失败:",
+);
+const handleGoForward = withNavLock(
+  () => commands.goForward(),
+  () => canGoForward.value,
+  "前进失败:",
+);
+const handleReload = withNavLock(
+  () => commands.reload(),
+  () => true,
+  "刷新失败:",
+);
+const handleGoHome = withNavLock(
+  () => commands.goHome(),
+  () => true,
+  "跳转首页失败:",
+);
 
 onMounted(async () => {
   updateNavState();
@@ -82,8 +121,8 @@ onUnmounted(() => {
     <div class="navigation">
       <Button
         :icon-raw="arrowIconRaw"
-        @click="commands.goBack"
-        :disabled="!canGoBack"
+        @click="handleGoBack"
+        :disabled="!canGoBack || isNavigating"
         color="#ebe2cf"
         shape="circle"
         size="2rem"
@@ -92,8 +131,8 @@ onUnmounted(() => {
       />
       <Button
         :icon-raw="arrowIconRaw"
-        @click="commands.goForward"
-        :disabled="!canGoForward"
+        @click="handleGoForward"
+        :disabled="!canGoForward || isNavigating"
         color="#ebe2cf"
         shape="circle"
         size="2rem"
@@ -101,7 +140,17 @@ onUnmounted(() => {
       />
       <Button
         :icon-raw="refreshIconRaw"
-        @click="commands.reload"
+        @click="handleReload"
+        :disabled="isNavigating"
+        color="#ebe2cf"
+        shape="circle"
+        size="2rem"
+        variant="translucent"
+      />
+      <Button
+        :icon-raw="homeIconRaw"
+        @click="handleGoHome"
+        :disabled="isNavigating"
         color="#ebe2cf"
         shape="circle"
         size="2rem"
@@ -144,13 +193,13 @@ onUnmounted(() => {
   flex-direction: row;
   align-items: center;
   justify-content: flex-end;
-  padding: 2%;
 }
 
 .navigation {
-  width: 12%;
+  width: 18%;
   height: 90%;
   display: flex;
+  gap: 5px;
   flex-direction: row;
   align-items: center;
   justify-content: center;

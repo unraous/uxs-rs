@@ -1,3 +1,4 @@
+use crate::config::CONFIG;
 use crate::core::{
     script::load_on,
     url::{classify, Type},
@@ -77,7 +78,7 @@ pub fn init_on(window: &tauri::Window, label: &str) -> Result<Webview, Box<dyn s
         "chaoxing" => (
             WebviewBuilder::new(
                 label,
-                WebviewUrl::External("https://i.chaoxing.com/".parse()?),
+                WebviewUrl::External(CONFIG.metadata.home_url.clone()),
             )
             .background_color((242, 244, 247).into())
             .on_navigation(|url| classify(url) != Type::Unknown)

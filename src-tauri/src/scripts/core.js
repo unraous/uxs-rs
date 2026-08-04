@@ -32,6 +32,8 @@
   let lockingSpeed = false;
   let videoSpeedValue = 2;
 
+  const console = globalThis.console;
+
   if (tauriInvoke) {
     console.log("检测到tauri后端环境");
     testOption = 1;

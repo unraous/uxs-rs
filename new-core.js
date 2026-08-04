@@ -1,6 +1,8 @@
 // @ts-check
 (function () {
   "use strict";
+  const console = globalThis.console;
+  const document = globalThis.document;
 
   /**DOM 选择器字段 */
   const DOM_CONFIG = Object.freeze({
@@ -48,12 +50,14 @@
     },
   });
 
-  /** 全局变量 */
-  const GLOBAL = {
-    /**
-     * tauri backend command function
-     *  @type {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} */
-    tauriInvoke: /** @type {any} */ (globalThis).__TAURI_INTERNALS__?.invoke,
+  /**
+   * tauri backend command function
+   *  @type {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} */
+  const tauriInvoke = /** @type {any} */ (globalThis).__TAURI_INTERNALS__
+    ?.invoke;
+
+  // 运行时状态与配置
+  const state = {
     config: {
       hasBackend: false,
       muteVideo: true,
@@ -61,12 +65,19 @@
       videoSpeedValue: 2.0,
       maxTryCount: 50,
     },
-    /** @type {Element[]} */
+    /** @type {HTMLElement[]} */
     chapterNodes: [],
     quizAnswerCache: [],
   };
 
-  const getConfig = async (tauriInvoke = GLOBAL.tauriInvoke) => {
+  /** @param {number} ms */
+  const sleep = (ms) =>
+    new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+
+  /**
+   * 从后端加载配置
+   */
+  const getConfig = async () => {
     if (!tauriInvoke) {
       console.info("检测为无后端模式，使用默认配置");
       return;
@@ -75,27 +86,27 @@
       console.info("正在从后端加载配置...");
       const configResponse = await tauriInvoke("options");
       // 具体见后端 src-tauri\src\config\options.rs
-      GLOBAL.config = {
-        ...GLOBAL.config,
+      state.config = {
+        ...state.config,
         hasBackend: true,
         muteVideo: configResponse.muteWebview,
         lockingSpeed: configResponse.speedLock,
         videoSpeedValue: configResponse.speedValue,
       };
-      console.info("配置设置成功：", GLOBAL.config);
+      console.info("配置设置成功：", state.config);
     } catch (e) {
       console.error(e);
     }
   };
 
   const catchChapterNodes = () => {
-    GLOBAL.chapterNodes = Array.from(
+    state.chapterNodes = Array.from(
       document
         .getElementById(DOM_CONFIG.courseTree.containerId)
         ?.querySelectorAll(DOM_CONFIG.courseTree.nodeClass) ?? [],
     );
-    if (GLOBAL.chapterNodes.length > 0) {
-      console.info("获取课程列表成功：", GLOBAL.chapterNodes);
+    if (state.chapterNodes.length > 0) {
+      console.info("获取课程列表成功：", state.chapterNodes);
     } else {
       console.error("获取课程列表失败");
     }
@@ -103,8 +114,8 @@
 
   /**
    * 获取课程章节状态
-   * @param {Element} node
-   * @returns {'Block' | 'Pending' | 'Finished' | 'Title' | 'Unknown'}
+   * @param {HTMLElement} node
+   * @returns {'Blocking' | 'Interactive' | 'Finished' | 'Title' | 'Unknown'}
    */
   const chapterNodeStatus = (node) => {
     /** @type {HTMLElement | null} */
@@ -115,23 +126,31 @@
         : "Unknown";
     }
     if (nameSpan.onclick == null) {
-      return "Block";
+      return "Blocking";
     }
     return node.querySelector(DOM_CONFIG.courseTree.unfinishedClass)
-      ? "Pending"
+      ? "Interactive"
       : "Finished";
+  };
+
+  /** @param {HTMLElement} node */
+  const handleChapter = async (node) => {
+    /** @type {HTMLElement | null} */
+    const nameSpan = node.querySelector(DOM_CONFIG.courseTree.nameClass);
+    console.info(`开始处理章节[${nameSpan?.getAttribute("title")}]`);
+    nameSpan?.click();
   };
 
   const main = async () => {
     await getConfig();
     catchChapterNodes();
 
-    for (const node of GLOBAL.chapterNodes) {
-      console.info(
-        `正在处理课程章节：${node.querySelector(DOM_CONFIG.courseTree.titleClass)?.textContent}`,
-      );
+    for (const node of state.chapterNodes) {
       const status = chapterNodeStatus(node);
-      console.info("课程章节状态：", status);
+      if (status === "Interactive") {
+        await handleChapter(node);
+        await sleep(2000);
+      }
     }
   };
 

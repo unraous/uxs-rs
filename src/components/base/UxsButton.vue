@@ -1,43 +1,48 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, type Component } from "vue";
 import { useRipple } from "@/composables/useRipple";
 import { useMagnetic } from "@/composables/useMagnetic";
 
 const buttonRef = ref<HTMLElement | null>(null);
 const contentRef = ref<HTMLElement | null>(null);
 
-const props = withDefaults(
-  defineProps<{
-    /** 文本标签 */
-    label?: string;
-    /** SVG Raw 字符串图标 */
-    iconRaw?: string;
-    /** 按钮形状：'pill' (胶囊全圆角) | 'circle' (正圆形) | 'round' (标准圆角) */
-    shape?: "pill" | "circle" | "round";
-    /** 预设风格：'brand' (主色极光) | 'translucent' (黑半透明) | 'custom' (自定义) */
-    variant?: "brand" | "translucent" | "custom";
-    /** 自定义背景色 / 渐变色 */
-    background?: string;
-    /** 自定义文字或图标颜色 */
-    color?: string;
-    /** 按钮尺寸 (如 '36px' 或 '80%') */
-    size?: string;
-    /** 是否禁用 */
-    disabled?: boolean;
-  }>(),
-  {
-    shape: "pill",
-    variant: "brand",
-    disabled: false,
-  },
-);
+const {
+  label = "",
+  icon = undefined,
+  background = "",
+  color = "",
+  size = "32px",
+  shape = "pill",
+  variant = "brand",
+  disabled = false,
+  type = "button",
+} = defineProps<{
+  /** 文本标签 */
+  label?: string;
+  /** SVG 组件图标 */
+  icon?: Component;
+  /** 按钮形状：'pill' (胶囊全圆角) | 'circle' (正圆形) | 'round' (标准圆角) */
+  shape?: "pill" | "circle" | "round";
+  /** 预设风格：'brand' (主色极光) | 'translucent' (黑半透明) | 'custom' (自定义) */
+  variant?: "brand" | "translucent" | "custom";
+  /** 自定义背景色 / 渐变色 */
+  background?: string;
+  /** 自定义文字或图标颜色 */
+  color?: string;
+  /** 按钮尺寸 (如 '36px' 或 '80%') */
+  size?: string;
+  /** 是否禁用 */
+  disabled?: boolean;
+  /** 按钮类型：'button' | 'submit' | 'reset' */
+  type?: "button" | "submit" | "reset";
+}>();
 
 const emit = defineEmits<{
   (e: "click", event: MouseEvent): void;
 }>();
 
 const { createRipple } = useRipple({
-  scale: props.shape === "circle" ? 2.0 : 2.5,
+  scale: shape === "circle" ? 2.0 : 2.5,
   duration: 0.8,
 });
 
@@ -54,34 +59,34 @@ const {
   outerFactor: 0.12,
   innerFactor: 0.36,
   maxDistance: 25,
-  disabled: () => props.disabled,
-  onMouseDown: (event) => createRipple(event, props.disabled),
+  disabled: () => disabled,
+  onMouseDown: (event) => createRipple(event, disabled),
 });
 
 /** 动态计算尺寸与背景样式 */
 const buttonStyle = computed(() => {
   const styles: Record<string, string> = {};
 
-  if (props.size) {
-    styles.height = props.size;
-    if (props.shape === "circle") {
-      styles.width = props.size;
+  if (size) {
+    styles.height = size;
+    if (shape === "circle") {
+      styles.width = size;
     }
   }
 
-  if (props.background) {
-    styles.background = props.background;
+  if (background) {
+    styles.background = background;
   }
 
-  if (props.color) {
-    styles.color = props.color;
+  if (color) {
+    styles.color = color;
   }
 
   return styles;
 });
 
 const handleClick = (event: MouseEvent) => {
-  if (!props.disabled) {
+  if (!disabled) {
     emit("click", event);
   }
 };
@@ -90,12 +95,9 @@ const handleClick = (event: MouseEvent) => {
 <template>
   <button
     ref="buttonRef"
+    :type="type"
     class="base-button"
-    :class="[
-      `shape-${props.shape}`,
-      `variant-${props.variant}`,
-      { disabled: props.disabled },
-    ]"
+    :class="[`shape-${shape}`, `variant-${variant}`, { disabled }]"
     :style="buttonStyle"
     @mouseenter="handleMouseEnter"
     @mousemove="handleMouseMove"
@@ -105,14 +107,22 @@ const handleClick = (event: MouseEvent) => {
     @click="handleClick"
   >
     <!-- 内容层 (支持插槽/文字/SVG，绑定 contentRef 实现微幅视差) -->
-    <div ref="contentRef" class="content">
+    <div
+      ref="contentRef"
+      class="content"
+    >
       <slot>
+        <component
+          :is="icon"
+          v-if="icon"
+          class="icon-svg"
+        />
         <span
-          v-if="props.iconRaw"
-          class="icon-raw"
-          v-html="props.iconRaw"
-        ></span>
-        <span v-if="props.label" class="label-text">{{ props.label }}</span>
+          v-if="label"
+          class="label-text"
+        >
+          {{ label }}
+        </span>
       </slot>
     </div>
   </button>
@@ -133,7 +143,6 @@ const handleClick = (event: MouseEvent) => {
   will-change: transform, opacity, filter;
   transition:
     opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     filter 0.25s ease,
     box-shadow 0.3s ease;
 }
@@ -194,17 +203,9 @@ const handleClick = (event: MouseEvent) => {
   will-change: transform;
 }
 
-.icon-raw {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1em;
-  height: 1em;
-}
-
-.icon-raw :deep(svg) {
-  width: 100%;
-  height: 100%;
+.icon-svg {
+  width: 1.25em;
+  height: 1.25em;
   fill: currentColor;
 }
 

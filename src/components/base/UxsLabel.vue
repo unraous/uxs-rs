@@ -1,12 +1,15 @@
 <script setup lang="ts">
-defineProps<{
+const { label, for: htmlFor } = defineProps<{
   label: string;
-  for?: string;
+  for: string;
 }>();
 </script>
 
 <template>
-  <label :for="$props.for" class="label-text">
+  <label
+    :for="htmlFor"
+    class="label-text"
+  >
     {{ label }}
   </label>
 </template>

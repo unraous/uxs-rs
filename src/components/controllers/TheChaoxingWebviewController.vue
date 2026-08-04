@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import zoomInIconRaw from "@/assets/zoom_in.svg?raw";
-import zoomOutIconRaw from "@/assets/zoom_out.svg?raw";
-import arrowIconRaw from "@/assets/arrow_forward.svg?raw";
-import refreshIconRaw from "@/assets/refresh.svg?raw";
-import homeIconRaw from "@/assets/home.svg?raw";
+import ZoomInIcon from "@/assets/zoom_in.svg?component";
+import ZoomOutIcon from "@/assets/zoom_out.svg?component";
+import ArrowIcon from "@/assets/arrow_forward.svg?component";
+import RefreshIcon from "@/assets/refresh.svg?component";
+import HomeIcon from "@/assets/home.svg?component";
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import Button from "@/components/base/Button.vue";
+import UxsButton from "@/components/base/UxsButton.vue";
 import { commands } from "@/services/cmds";
+
+const console = globalThis.console;
 
 // Webview 缩放控制阶梯表
 const ZOOM_LEVELS = [
@@ -119,64 +121,66 @@ onUnmounted(() => {
 <template>
   <div class="body">
     <div class="navigation">
-      <Button
-        :icon-raw="arrowIconRaw"
-        @click="handleGoBack"
+      <UxsButton
+        :icon="ArrowIcon"
         :disabled="!canGoBack || isNavigating"
         color="#ebe2cf"
         shape="circle"
         size="2rem"
         variant="translucent"
         class="back-btn"
+        @click="handleGoBack"
       />
-      <Button
-        :icon-raw="arrowIconRaw"
-        @click="handleGoForward"
+      <UxsButton
+        :icon="ArrowIcon"
         :disabled="!canGoForward || isNavigating"
         color="#ebe2cf"
         shape="circle"
         size="2rem"
         variant="translucent"
+        @click="handleGoForward"
       />
-      <Button
-        :icon-raw="refreshIconRaw"
+      <UxsButton
+        :icon="RefreshIcon"
+        :disabled="isNavigating"
+        color="#ebe2cf"
+        shape="circle"
+        size="2rem"
+        variant="translucent"
         @click="handleReload"
-        :disabled="isNavigating"
-        color="#ebe2cf"
-        shape="circle"
-        size="2rem"
-        variant="translucent"
       />
-      <Button
-        :icon-raw="homeIconRaw"
-        @click="handleGoHome"
+      <UxsButton
+        :icon="HomeIcon"
         :disabled="isNavigating"
         color="#ebe2cf"
         shape="circle"
         size="2rem"
         variant="translucent"
+        @click="handleGoHome"
       />
     </div>
     <div class="capsule-slot">
-      <p class="url-text">{{ currentUrl }}</p>
-      <Button
-        :icon-raw="zoomOutIconRaw"
-        @click="zoomOut"
+      <p class="url-text">
+        {{ currentUrl }}
+      </p>
+      <UxsButton
+        :icon="ZoomOutIcon"
         :disabled="!canZoomOut"
         color="#0d58a4"
         shape="circle"
         size="1.75rem"
         variant="translucent"
+        @click="zoomOut"
       />
       <span class="zoom-value">{{ currentZoomText }}</span>
-      <Button
-        :icon-raw="zoomInIconRaw"
-        @click="zoomIn"
+      <UxsButton
+        :icon="ZoomInIcon"
         :disabled="!canZoomIn"
         color="#0d58a4"
         shape="circle"
         size="1.75rem"
         variant="translucent"
+        @click="zoomIn"
       />
     </div>
     <div class="title">
@@ -206,11 +210,11 @@ onUnmounted(() => {
   margin-right: auto;
 }
 
-:deep(.navigation .icon-raw) {
+:deep(.navigation .icon-svg) {
   transform: scale(1.25);
 }
 
-:deep(.back-btn .icon-raw) {
+:deep(.back-btn .icon-svg) {
   transform: rotate(180deg) scale(1.25);
 }
 

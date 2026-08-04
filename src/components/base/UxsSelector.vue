@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, useId } from "vue";
-import Label from "./Label.vue";
+import { ref, onMounted, useId } from "vue";
+import UxsLabel from "./UxsLabel.vue";
 
-const props = withDefaults(
-  defineProps<{
-    modelValue: number;
-    label: string;
-    options?: string[];
-    id?: string;
-  }>(),
-  {
-    options: () => ["undefined", "option1", "option2", "option3"],
-  },
-);
-
-const selectId = computed(() => props.id || useId());
+const {
+  modelValue,
+  label,
+  options = ["undefined", "option1", "option2", "option3"],
+  id = useId(),
+} = defineProps<{
+  modelValue: number;
+  label: string;
+  options?: string[];
+  id?: string;
+}>();
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: number): void;
@@ -34,11 +32,17 @@ onMounted(() => document.addEventListener("click", handleClickOutside));
 
 <template>
   <div class="base-config-select">
-    <Label :label="label" :for="selectId" :aria-label="label" />
+    <UxsLabel
+      :label="label"
+      :for="id"
+    />
 
-    <div class="input-section" ref="dropdownRef">
+    <div
+      ref="dropdownRef"
+      class="input-section"
+    >
       <div
-        :id="selectId"
+        :id="id"
         class="select-trigger"
         :class="{ 'is-open': isOpen }"
         @click="isOpen = !isOpen"
@@ -47,7 +51,10 @@ onMounted(() => document.addEventListener("click", handleClickOutside));
         @keydown.escape.prevent="isOpen = false"
       >
         <span class="selected-text">{{ options?.[modelValue] ?? "" }}</span>
-        <span class="select-arrow" :class="{ 'is-open': isOpen }">
+        <span
+          class="select-arrow"
+          :class="{ 'is-open': isOpen }"
+        >
           <svg
             viewBox="0 -960 960 960"
             width="24"
@@ -60,7 +67,10 @@ onMounted(() => document.addEventListener("click", handleClickOutside));
       </div>
 
       <Transition name="dropdown">
-        <div v-show="isOpen" class="select-dropdown-wrapper">
+        <div
+          v-show="isOpen"
+          class="select-dropdown-wrapper"
+        >
           <div class="select-dropdown">
             <div
               v-for="(opt, index) in options"

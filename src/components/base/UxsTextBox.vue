@@ -1,26 +1,19 @@
 <script setup lang="ts">
-import { computed, useId } from "vue";
-
-const props = defineProps<{
+const { modelValue, placeholder, pattern, id } = defineProps<{
   modelValue: string | number;
-  placeholder?: string;
-  pattern?: string;
-  id?: string;
+  placeholder: string;
+  pattern: string;
+  id: string;
 }>();
 
 const emit = defineEmits(["update:modelValue", "change"]);
-const inputId = computed(() => props.id || useId());
 
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const value = target.value;
 
-  if (
-    props.pattern &&
-    value !== "" &&
-    !new RegExp(`^(?:${props.pattern})$`).test(value)
-  ) {
-    target.value = String(props.modelValue ?? "");
+  if (pattern && value !== "" && !new RegExp(`^(?:${pattern})$`).test(value)) {
+    target.value = String(modelValue ?? "");
     return;
   }
 
@@ -31,7 +24,7 @@ const onInput = (event: Event) => {
 <template>
   <div class="base-text-box">
     <input
-      :id="inputId"
+      :id="id"
       :value="modelValue"
       :placeholder="placeholder"
       :pattern="pattern"
@@ -40,7 +33,7 @@ const onInput = (event: Event) => {
       @input="onInput"
       @change="$emit('change', $event)"
     />
-    <div class="shadow-shell"></div>
+    <div class="shadow-shell" />
   </div>
 </template>
 

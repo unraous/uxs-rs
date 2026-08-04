@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import Input from "@/components/base/Input.vue";
-import Toggle from "@/components/base/Toggle.vue";
+import UxsInput from "@/components/base/UxsInput.vue";
+import UxsToggle from "@/components/base/UxsToggle.vue";
 import { commands, OptionsConfig } from "@/services/cmds.ts";
 
 const options = ref<OptionsConfig>();
@@ -44,19 +44,31 @@ onMounted(async () => {
 <template>
   <div class="course-config-panel">
     <h2 class="title">Course</h2>
-    <div v-if="options" class="settings-container">
-      <Toggle v-model="options.persistSession" label="Perisist Session" />
-      <Toggle v-model="options.muteWebview" label="Mute Course Webview" />
-      <Toggle v-model="options.speedLock" label="Lock Playing Speed" />
-      <Input
+    <div
+      v-if="options"
+      class="settings-container"
+    >
+      <UxsToggle
+        v-model="options.persistSession"
+        label="Perisist Session"
+      />
+      <UxsToggle
+        v-model="options.muteWebview"
+        label="Mute Course Webview"
+      />
+      <UxsToggle
+        v-model="options.speedLock"
+        label="Lock Playing Speed"
+      />
+      <UxsInput
         id="playing-speed-input"
         v-model.number="speedValue"
         placeholder="input number here"
         label="Playing Speed"
         aria-label="Playing Speed"
-        @change="setOptions"
         pattern="\d+(?:\.\d*)?"
         class="speed-input"
+        @change="setOptions"
       />
     </div>
   </div>

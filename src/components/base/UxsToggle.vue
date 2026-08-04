@@ -1,20 +1,18 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed, useId } from "vue";
-import Label from "./Label.vue";
+import { ref, watch, onMounted, useId } from "vue";
+import UxsLabel from "./UxsLabel.vue";
 
-const props = withDefaults(
-  defineProps<{
-    label: string;
-    modelValue?: boolean;
-    id?: string;
-  }>(),
-  {
-    modelValue: false,
-  },
-);
+const {
+  label,
+  modelValue = false,
+  id = useId(),
+} = defineProps<{
+  label: string;
+  modelValue?: boolean;
+  id?: string;
+}>();
 
 const emit = defineEmits(["update:modelValue"]);
-const toggleId = computed(() => props.id || useId());
 
 // 初始旋转角度
 const rotationAngle = ref(180);
@@ -22,7 +20,7 @@ const ballVisible = ref(false);
 let timer: ReturnType<typeof setTimeout> | null = null;
 
 const toggle = () => {
-  emit("update:modelValue", !props.modelValue);
+  emit("update:modelValue", !modelValue);
 };
 
 const handleStateUpdate = (isON: boolean, isInitial = false) => {
@@ -38,25 +36,28 @@ const handleStateUpdate = (isON: boolean, isInitial = false) => {
   const delay = isInitial ? 250 : 300;
 
   timer = setTimeout(() => {
-    ballVisible.value = props.modelValue;
+    ballVisible.value = modelValue;
   }, delay);
 };
 
 watch(
-  () => props.modelValue,
+  () => modelValue,
   (newVal) => handleStateUpdate(newVal),
 );
 
-onMounted(() => handleStateUpdate(props.modelValue, true));
+onMounted(() => handleStateUpdate(modelValue, true));
 </script>
 
 <template>
   <div class="base-config-input">
-    <Label :label="label" :for="toggleId" :aria-label="label" />
+    <UxsLabel
+      :label="label"
+      :for="id"
+    />
 
     <div class="input-section">
       <div
-        :id="toggleId"
+        :id="id"
         class="bowl-toggle"
         role="switch"
         :aria-checked="modelValue"
@@ -71,7 +72,10 @@ onMounted(() => handleStateUpdate(props.modelValue, true));
             class="bowl-ring"
             :style="{ transform: `rotate(${rotationAngle}deg)` }"
           >
-            <svg viewBox="0 0 40 40" class="bowl-svg">
+            <svg
+              viewBox="0 0 40 40"
+              class="bowl-svg"
+            >
               <path
                 d="M 4,20 A 16,16 0 0 0 36,20"
                 fill="none"
@@ -84,7 +88,10 @@ onMounted(() => handleStateUpdate(props.modelValue, true));
 
           <div class="ball-clip-box">
             <transition name="ball-physics">
-              <div v-if="ballVisible" class="ball" />
+              <div
+                v-if="ballVisible"
+                class="ball"
+              />
             </transition>
           </div>
         </div>

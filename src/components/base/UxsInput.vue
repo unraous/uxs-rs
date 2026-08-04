@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { computed, useId } from "vue";
-import TextBox from "./TextBox.vue";
-import Label from "./Label.vue";
+import { useId } from "vue";
+import UxsTextBox from "./UxsTextBox.vue";
+import UxsLabel from "./UxsLabel.vue";
 
-const props = defineProps<{
+const {
+  modelValue,
+  label,
+  placeholder = "",
+  pattern = ".*",
+  id = useId(),
+} = defineProps<{
   modelValue: string | number;
   label: string;
   placeholder?: string;
@@ -12,20 +18,22 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(["update:modelValue", "change"]);
-const inputId = computed(() => props.id || useId());
 </script>
 
 <template>
   <div class="base-config-input">
     <!-- 仅保留文本标签，设定固定宽度以确保右侧输入框对齐 -->
-    <Label :label="label" :aria-label="label" :for="inputId" />
-    <TextBox
-      :id="inputId"
-      :modelValue="modelValue"
+    <UxsLabel
+      :label="label"
+      :for="id"
+    />
+    <UxsTextBox
+      :id="id"
+      :model-value="modelValue"
       :placeholder="placeholder"
       :pattern="pattern"
       class="input-section"
-      @update:modelValue="emit('update:modelValue', $event)"
+      @update:model-value="emit('update:modelValue', $event)"
       @change="emit('change', $event)"
     />
   </div>

@@ -21,7 +21,6 @@ pub fn classify(url: &tauri::Url) -> Type {
     }
 
     if host != "chaoxing.com" && !host.ends_with(".chaoxing.com") {
-        log::warn!("检测到非超星域名URL: {}", url.as_str());
         return Type::Unknown;
     }
 

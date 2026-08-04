@@ -1,8 +1,6 @@
-use log::error;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::Error;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(default)]
@@ -11,53 +9,34 @@ pub struct PathsConfig {
     pub files: HashMap<String, PathBuf>,
 }
 
-fn cwd() -> PathBuf {
-    std::env::current_dir().unwrap_or_else(|e| {
-        error!("Failed to get current working directory: {}", e);
-        PathBuf::from(".")
-    })
-}
-
-fn cwd_parent() -> PathBuf {
-    cwd()
-        .parent()
-        .map(Path::to_path_buf)
-        .ok_or(Error::other("No parent directory"))
-        .unwrap_or_else(|e| {
-            error!("Failed to get parent directory: {}", e);
-            PathBuf::from("..")
-        })
-}
-
-fn data_dir() -> PathBuf {
-    match cfg!(debug_assertions) {
-        true => cwd_parent().join("uxs-data"),
-        false => cwd().join("uxs-data"),
-    }
-}
-
 impl Default for PathsConfig {
     fn default() -> Self {
+        let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+        let base_dir = if cfg!(debug_assertions) {
+            cwd.parent().unwrap_or(&cwd)
+        } else {
+            &cwd
+        };
+        let data_dir = base_dir.join("uxs-data");
+
         Self {
             dirs: HashMap::from([
-                ("data".into(), data_dir()),
-                ("logs".into(), data_dir().join("logs")),
+                ("data".into(), data_dir.clone()),
+                ("logs".into(), data_dir.join("logs")),
             ]),
-            files: HashMap::from([("config".into(), data_dir().join("config.toml"))]),
+            files: HashMap::from([("config".into(), data_dir.join("config.toml"))]),
         }
     }
 }
 
 impl PathsConfig {
     pub fn ensure(&self) -> std::io::Result<()> {
+        // 只创建必要目录，避免生成 0 字节空配置文件
         for dir in self.dirs.values() {
             std::fs::create_dir_all(dir)?;
-        }
-        for file in self.files.values() {
-            if !file.exists() {
-                std::fs::File::create(file)?;
-            }
         }
         Ok(())
     }
 }
+
+

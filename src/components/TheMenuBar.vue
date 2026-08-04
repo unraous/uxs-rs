@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import xIconRaw from "@/assets/close.svg?raw";
-import mIconRaw from "@/assets/remove.svg?raw";
+import CloseIcon from "@/assets/close.svg?component";
+import MinimizeIcon from "@/assets/remove.svg?component";
 import { commands } from "@/services/cmds";
 import { ref } from "vue";
 
@@ -31,11 +31,17 @@ const closeApp = async () => {
     <div class="title">
       {{ appTitle }}
     </div>
-    <button @click="minimizeApp">
-      <span v-html="mIconRaw" class="icon"></span>
+    <button
+      type="button"
+      @click="minimizeApp"
+    >
+      <MinimizeIcon class="icon" />
     </button>
-    <button @click="closeApp">
-      <span v-html="xIconRaw" class="icon"></span>
+    <button
+      type="button"
+      @click="closeApp"
+    >
+      <CloseIcon class="icon" />
     </button>
   </div>
 </template>

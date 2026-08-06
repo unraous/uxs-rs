@@ -37,7 +37,7 @@
     },
 
     pdf: {
-      iframeId: "panView",
+      iframeId: "#panView",
       docClass: "insertdoc-online-pdf",
     },
 
@@ -83,13 +83,13 @@
      * @template T
      * @param {() => T} getter 元素获取函数
      * @param {number} [timeout=5000] 超时时间(ms)
-     * @param {number} [interval=200] 检查间隔(ms)
+     * @param {number} [interval=250] 检查间隔(ms)
      * @returns {Promise<T | null>}
      */
-    until: async (getter, timeout = 5000, interval = 200) => {
+    until: async (getter, timeout = 5000, interval = 250) => {
       const start = performance.now(); // ◄◄ 推荐使用高精度单调时钟
       while (performance.now() - start < timeout) {
-        const el = getter();
+        const el = await getter();
         if (el) return el;
         await sleep(interval);
       }
@@ -136,14 +136,13 @@
      * @returns {Promise<Document | null>}
      */
     iframeDoc: async (preAction, selector, root) => {
-      const oldDoc =
-        /** @type {HTMLIFrameElement | null} */ (root.querySelector(selector))
-          ?.contentDocument ?? null;
-
+      let oldDoc = null;
       if (typeof preAction === "function") {
+        oldDoc =
+          /** @type {HTMLIFrameElement | null} */ (root.querySelector(selector))
+            ?.contentDocument ?? null;
         await preAction();
       }
-
       return await wait.until(() =>
         getReadyIframeDoc(
           /** @type {HTMLIFrameElement | null} */ (
@@ -181,6 +180,19 @@
       });
     },
   });
+
+  /**
+   * 安全执行异步操作，捕获并记录异常而不中断上层批处理
+   * @param {() => any} action 异步操作函数
+   * @param {string} errorMessage 异常提示前缀
+   */
+  const safeRun = async (action, errorMessage) => {
+    try {
+      await action();
+    } catch (e) {
+      console.error(errorMessage, e);
+    }
+  };
 
   /**
    * tauri backend command function
@@ -312,55 +324,79 @@
    * @param {Document} taskDoc 任务点的文档对象
    */
   const handleVideo = async (taskDoc) => {
-    try {
-      const launchBtn = await wait.element(
-        null,
-        DOM.video.launchBtnClass,
-        taskDoc,
-      );
+    console.info("开始处理Video任务点");
+    const launchBtn = await wait.element(
+      null,
+      DOM.video.launchBtnClass,
+      taskDoc,
+    );
 
-      const videoEl = /** @type {HTMLMediaElement | null} */ (
-        await wait.element(null, "video", taskDoc)
-      );
-      if (state.config.muteVideo) {
-        muteVideo(videoEl);
-      }
-
-      const isStarted = await wait.until(() => {
-        if (videoEl?.currentTime > 0 && !videoEl.paused) {
-          return true;
-        }
-        launchBtn?.click();
-        return null;
-      });
-
-      if (!isStarted) {
-        console.warn("视频多次尝试无法启动播放或资源加载异常，跳过该任务点");
-        return;
-      }
-
-      if (state.config.lockingSpeed) {
-        applySpeed(videoEl, state.config.videoSpeedValue);
-      }
-    } catch (e) {
-      console.error("处理视频任务点失败，强制退出", e);
+    const videoEl = /** @type {HTMLMediaElement | null} */ (
+      await wait.element(null, "video", taskDoc)
+    );
+    if (state.config.muteVideo) {
+      muteVideo(videoEl);
     }
+
+    const isStarted = await wait.until(() => {
+      if (videoEl?.currentTime > 0 && !videoEl.paused) {
+        return true;
+      }
+      launchBtn?.click();
+      return null;
+    });
+
+    if (!isStarted) {
+      console.error("视频多次尝试无法启动播放，跳过该任务点");
+      throw new Error("视频多次尝试无法启动播放");
+    }
+
+    if (state.config.lockingSpeed) {
+      applySpeed(videoEl, state.config.videoSpeedValue);
+    }
+    console.info("Video任务点处理完成");
   };
 
-  const handlePDF = async (taskDoc) => {};
-
-  /** 任务类型分发处理器映射表 (静态映射常量) */
-  const TASK_HANDLERS = Object.freeze({
-    Video: handleVideo,
-    // PDF: async () => {},
-    // Quiz: async () => {},
-  });
+  /**
+   * 处理 PDF 任务点
+   * @param {Document} taskDoc
+   */
+  const handlePDF = async (taskDoc) => {
+    console.info("开始处理PDF任务点");
+    const pdfDoc = await wait.iframeDoc(null, DOM.pdf.iframeId, taskDoc);
+    if (!pdfDoc) {
+      throw new Error("获取 PDF 文档框架失败");
+    }
+    const container = pdfDoc.documentElement;
+    const isScrolled = await wait.until(async () => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth",
+      });
+      await sleep(750);
+      if (
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 10
+      ) {
+        return true;
+      }
+      return null;
+    });
+    if (!isScrolled) {
+      throw new Error("多次尝试后 PDF 仍未滚动");
+    }
+    console.info("PDF任务点处理完成");
+  };
 
   /**
    * @param {Document} chapterDoc
    */
   const handleTab = async (chapterDoc) => {
-    const containers = await wait.elements(null, ".ans-attach-ct", chapterDoc);
+    const containers = await wait.elements(
+      null,
+      ".ans-attach-ct:has(.ans-job-icon)",
+      chapterDoc,
+    );
     for (const [index, container] of containers.entries()) {
       const taskInfo = `第 ${index + 1}/${containers.length} 个任务点`;
       console.info(taskInfo);
@@ -374,8 +410,14 @@
         console.info(`${taskInfo} 已完成，自动跳过`);
         continue;
       }
+
+      const taskHandler = {
+        Video: handleVideo,
+        PDF: handlePDF,
+        // Quiz: async () => {},
+      };
       const type = classifyTask(taskDoc);
-      const handler = TASK_HANDLERS[type];
+      const handler = taskHandler[type];
 
       if (!handler) {
         console.warn(
@@ -384,7 +426,11 @@
         continue;
       }
 
-      await Promise.all([handler(taskDoc), wait.taskPointComplete(container)]);
+      await safeRun(
+        () =>
+          Promise.all([handler(taskDoc), wait.taskPointComplete(container)]),
+        `${taskInfo} 处理异常，自动跳过，任务点类别：${type}`,
+      );
     }
   };
 
@@ -402,13 +448,16 @@
       DOM.chapter.tabClass,
       document,
     )) {
-      console.info("等待章节主框架加载");
-      const chapterDoc = await wait.iframeDoc(
-        () => tab.click(),
-        DOM.frames.chapterFrameId,
-        document,
-      );
-      await handleTab(chapterDoc);
+      await safeRun(async () => {
+        console.info("等待章节主框架加载");
+        const chapterDoc = await wait.iframeDoc(
+          () => tab.click(),
+          DOM.frames.chapterFrameId,
+          document,
+        );
+        if (!chapterDoc) throw new Error("获取章节主框架超时");
+        await handleTab(chapterDoc);
+      }, "页签处理失败，自动跳过该页签");
     }
     console.info("本章节处理完毕");
   };
@@ -419,7 +468,10 @@
     for (const node of chapterNodes(document)) {
       const status = chapterNodeStatus(node);
       if (status === "Interactive") {
-        await handleChapter(node);
+        await safeRun(
+          () => handleChapter(node),
+          "章节处理失败，自动跳过该章节",
+        );
       }
     }
   };

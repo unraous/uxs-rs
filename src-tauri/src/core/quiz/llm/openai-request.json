@@ -11,11 +11,11 @@
         "items": {
           "type": "object",
           "properties": {
-            "题号": { "type": "string" },
-            "解析": { "type": "string" },
-            "答案": { "type": "string" }
+            "index": { "type": "string" },
+            "explanation": { "type": "string" },
+            "content": { "type": "string" }
           },
-          "required": ["题号", "解析", "答案"],
+          "required": ["index", "explanation", "content"],
           "additionalProperties": false
         }
       },

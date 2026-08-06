@@ -16,12 +16,12 @@ const SYSTEM_PROMPT: &str = include_str!("./system_prompt.txt");
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct AnswerItem {
-    #[serde(rename = "题号", alias = "index")]
-    pub id: String,
-    #[serde(rename = "解析", alias = "explanation")]
+    #[serde(alias = "题号", alias = "id")]
+    pub index: String,
+    #[serde(alias = "解析")]
     pub explanation: String,
-    #[serde(rename = "答案", alias = "content")]
-    pub answer: String,
+    #[serde(alias = "答案", alias = "answer")]
+    pub content: String,
 }
 
 #[async_trait]

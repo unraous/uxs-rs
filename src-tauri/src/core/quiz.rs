@@ -53,7 +53,7 @@ mod tests {
             Ok(answers) => {
                 assert!(!answers.is_empty(), "返回的答案列表不应为空");
                 for (i, item) in answers.iter().enumerate() {
-                    println!("[{}] 题号: {}, 答案: {}", i + 1, item.id, item.answer);
+                    println!("[{}] 题号: {}, 答案: {}", i + 1, item.index, item.content);
                     println!("    解析: {}", item.explanation);
                 }
             }

@@ -63,17 +63,16 @@
     try {
       const doc = iframe?.contentDocument;
       if (
-        !doc ||
-        doc === prevDoc ||
-        doc.location?.href === DOM.frames.blankUrl ||
-        !doc.body?.children?.length
+        doc?.location?.href !== DOM.frames.blankUrl &&
+        doc !== prevDoc &&
+        doc?.body?.children?.length
       ) {
-        return null;
+        return doc;
       }
-      return doc;
-    } catch {
-      return null;
+    } catch (error) {
+      console.warn("访问异常，无法获取iframe文档", error);
     }
+    return null;
   };
 
   /**
@@ -83,11 +82,11 @@
     /**
      * @template T
      * @param {() => T} getter 元素获取函数
-     * @param {number} [timeout=10000] 超时时间(ms)
+     * @param {number} [timeout=5000] 超时时间(ms)
      * @param {number} [interval=200] 检查间隔(ms)
      * @returns {Promise<T | null>}
      */
-    until: async (getter, timeout = 10000, interval = 200) => {
+    until: async (getter, timeout = 5000, interval = 200) => {
       const start = performance.now(); // ◄◄ 推荐使用高精度单调时钟
       while (performance.now() - start < timeout) {
         const el = getter();
@@ -102,7 +101,7 @@
      * @template {HTMLElement} [T=HTMLElement]
      * @param {(() => void | Promise<void>) | null} preAction 在等待前执行的触发动作（无触发动作传 null）
      * @param {string} selector 选择器表达式
-     * @param {ParentNode} [root] 根查找节点
+     * @param {ParentNode} root 根查找节点
      * @returns {Promise<T[]>}
      */
     elements: async (preAction, selector, root) => {
@@ -123,18 +122,17 @@
      * 等待指定选择器的首个元素出现并返回
      * @param {(() => void | Promise<void>) | null} preAction 在等待前执行的触发动作（无触发动作传 null）
      * @param {string} selector 选择器表达式
-     * @param {ParentNode} [root] 根查找节点
-     * @returns {Promise<HTMLElement | null>}
+     * @param {ParentNode} root 根查找节点
+     * @returns {Promise<HTMLElement | undefined>}
      */
-    element: async (preAction, selector, root) => {
-      return (await wait.elements(preAction, selector, root))[0] ?? null;
-    },
+    element: async (preAction, selector, root) =>
+      (await wait.elements(preAction, selector, root))[0],
 
     /**
      * 等待并获取就绪的 iframe Document（自动过滤 about:blank 阶段及旧 Document 引用）
      * @param {(() => void | Promise<void>) | null} preAction 在等待前执行的触发动作（无触发动作传 null）
      * @param {string} selector iframe 的选择器
-     * @param {ParentNode} [root=document] 根查找节点
+     * @param {ParentNode} root 根查找节点
      * @returns {Promise<Document | null>}
      */
     iframeDoc: async (preAction, selector, root) => {
@@ -155,6 +153,33 @@
         ),
       );
     },
+
+    /**
+     * 等待指定任务点在 DOM 中更新为完成状态 (绿标对勾)
+     * @param {HTMLElement} container 任务点的大容器节点对象
+     * @returns {Promise<boolean>}
+     */
+    taskPointComplete: (container) => {
+      console.info("开始监控任务点完成情况");
+      if (!container) return Promise.resolve(true);
+
+      const isDone = () => container.classList.contains("ans-job-finished");
+      if (isDone()) return Promise.resolve(true);
+
+      return new Promise((resolve) => {
+        const observer = new MutationObserver(() => {
+          if (isDone()) {
+            observer.disconnect();
+            console.info("任务点在 DOM 中已更新为完成状态");
+            resolve(true);
+          }
+        });
+        observer.observe(container, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+      });
+    },
   });
 
   /**
@@ -167,55 +192,73 @@
   const sleep = (ms) =>
     new Promise((resolve) => globalThis.setTimeout(resolve, ms));
 
-  /**
-   * @typedef {Object} AppConfig
-   * @property {boolean} hasBackend 是否连通后端
-   * @property {boolean} muteVideo 是否视频静音
-   * @property {boolean} lockingSpeed 是否锁定播放倍速
-   * @property {number} videoSpeedValue 播放倍速数值
-   */
+  class AppConfig {
+    hasBackend = false;
+    muteVideo = true;
+    lockingSpeed = false;
+    videoSpeedValue = 2.0;
+
+    /**
+     * 异步从后端拉取配置并更新字段
+     * @param {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} invoke
+     */
+    async loadFromBackend(invoke) {
+      if (!invoke) {
+        console.info("检测为无后端模式，使用默认配置");
+        return;
+      }
+      try {
+        console.info("正在从后端加载配置...");
+        const res = await invoke("options");
+        if (res) {
+          this.hasBackend = true;
+          this.muteVideo = res.muteWebview ?? this.muteVideo;
+          this.lockingSpeed = res.speedLock ?? this.lockingSpeed;
+          this.videoSpeedValue = res.speedValue ?? this.videoSpeedValue;
+          console.info("配置设置成功：", this);
+        }
+      } catch (e) {
+        console.error("从后端加载配置失败：", e);
+      }
+    }
+  }
 
   /**
-   * @typedef {Object} AppState
-   * @property {AppConfig} config 运行配置
-   * @property {HTMLElement[]} chapterNodes 章节节点列表
-   * @property {Array<any>} quizAnswerCache 测验答案缓存
+   * 预先对视频节点做静音处理 (播放前调用)
+   * @param {HTMLMediaElement | null} videoEl
    */
+  const muteVideo = (videoEl) => {
+    if (!videoEl) return;
+    videoEl.muted = true;
+    videoEl.defaultMuted = true;
+  };
 
   /**
-   * 从后端加载配置
-   * @param {<T = any>(cmd: string, args?: Record<string, any>) => Promise<T>} invoke
-   * @param {AppConfig} config
-   * @returns {Promise<AppConfig>}
+   * 视频真实播放后施加倍速与锁定 (播放后调用)
+   * @param {HTMLMediaElement | null} videoEl
+   * @param {number} targetRate
    */
-  const loadConfig = async (invoke, config) => {
-    if (!invoke) {
-      console.info("检测为无后端模式，使用默认配置");
-      return config;
-    }
-    try {
-      console.info("正在从后端加载配置...");
-      const configResponse = await invoke("options");
-      // 具体见后端 src-tauri\src\config\options.rs
-      config = {
-        ...config,
-        hasBackend: true,
-        muteVideo: configResponse.muteWebview,
-        lockingSpeed: configResponse.speedLock,
-        videoSpeedValue: configResponse.speedValue,
-      };
-      console.info("配置设置成功：", config);
-    } catch (e) {
-      console.error(e);
-    }
-    return config;
+  const applySpeed = (videoEl, targetRate) => {
+    videoEl.playbackRate = targetRate;
+    Object.defineProperty(videoEl, "playbackRate", {
+      get: () => targetRate,
+      set: () => {},
+      configurable: true,
+    });
+  };
+
+  /** 全局模块共享运行状态单例 */
+  const state = {
+    config: new AppConfig(),
+    chapterNodes: /** @type {HTMLElement[]} */ ([]),
+    quizAnswerCache: [],
   };
 
   /**
    * @param {Document} document
    * @returns {HTMLElement[]}
    */
-  const catchChapterNodes = (document) => {
+  const chapterNodes = (document) => {
     const nodes = /** @type {HTMLElement[]} */ (
       Array.from(document.querySelectorAll(DOM.courseTree.nodeClass))
     );
@@ -250,56 +293,120 @@
 
   /**
    * @param {Document} taskDoc
-   * @returns {Promise<"Video" | "PDF" | "Quiz" | "Other">}
+   * @returns {"Video" | "PDF" | "Quiz" | "Other"}
    */
-  const classifyTask = async (taskDoc) => {
+  const classifyTask = (taskDoc) => {
+    try {
+      const url = taskDoc.location.href;
+      if (url.includes("/ananas/modules/video/")) return "Video";
+      if (url.includes("/ananas/modules/pdf/")) return "PDF";
+      if (url.includes("/ananas/modules/work/")) return "Quiz";
+    } catch {
+      console.warn("获取任务文档失败，无法识别任务类型");
+    }
     return "Other";
   };
+
+  /**
+   * 处理视频任务点
+   * @param {Document} taskDoc 任务点的文档对象
+   */
+  const handleVideo = async (taskDoc) => {
+    try {
+      const launchBtn = await wait.element(
+        null,
+        DOM.video.launchBtnClass,
+        taskDoc,
+      );
+
+      const videoEl = /** @type {HTMLMediaElement | null} */ (
+        await wait.element(null, "video", taskDoc)
+      );
+      if (state.config.muteVideo) {
+        muteVideo(videoEl);
+      }
+
+      const isStarted = await wait.until(() => {
+        if (videoEl?.currentTime > 0 && !videoEl.paused) {
+          return true;
+        }
+        launchBtn?.click();
+        return null;
+      });
+
+      if (!isStarted) {
+        console.warn("视频多次尝试无法启动播放或资源加载异常，跳过该任务点");
+        return;
+      }
+
+      if (state.config.lockingSpeed) {
+        applySpeed(videoEl, state.config.videoSpeedValue);
+      }
+    } catch (e) {
+      console.error("处理视频任务点失败，强制退出", e);
+    }
+  };
+
+  const handlePDF = async (taskDoc) => {};
+
+  /** 任务类型分发处理器映射表 (静态映射常量) */
+  const TASK_HANDLERS = Object.freeze({
+    Video: handleVideo,
+    // PDF: async () => {},
+    // Quiz: async () => {},
+  });
 
   /**
    * @param {Document} chapterDoc
    */
   const handleTab = async (chapterDoc) => {
-    if (!chapterDoc) {
-      console.warn("无法获取章节主框架，请检查网络连接或页面加载状态");
-      return;
-    }
-    /** @type {HTMLIFrameElement[]} */
-    const taskIframes = await wait.elements(
-      null,
-      ".ans-attach-ct:has(.ans-job-icon) iframe",
-      chapterDoc,
-    );
-    for (const taskIframe of taskIframes) {
+    const containers = await wait.elements(null, ".ans-attach-ct", chapterDoc);
+    for (const [index, container] of containers.entries()) {
+      const taskInfo = `第 ${index + 1}/${containers.length} 个任务点`;
+      console.info(taskInfo);
+
+      const taskIframe = /** @type {HTMLIFrameElement | null} */ (
+        await wait.element(null, "iframe", container)
+      );
       const taskDoc = await wait.until(() => getReadyIframeDoc(taskIframe));
-      switch (await classifyTask(taskDoc)) {
-        case "Video":
-          break;
-        case "PDF":
-          break;
+
+      if (container.classList.contains("ans-job-finished")) {
+        console.info(`${taskInfo} 已完成，自动跳过`);
+        continue;
       }
+      const type = classifyTask(taskDoc);
+      const handler = TASK_HANDLERS[type];
+
+      if (!handler) {
+        console.warn(
+          `${taskInfo} (不支持的类型: ${type}) ${taskDoc?.location?.href}`,
+        );
+        continue;
+      }
+
+      await Promise.all([handler(taskDoc), wait.taskPointComplete(container)]);
     }
   };
 
   /**
-   * @param {Document} doc
    * @param {HTMLElement} node
    */
-  const handleChapter = async (doc, node) => {
+  const handleChapter = async (node) => {
     /** @type {HTMLElement | null} */
     const nameSpan = node.querySelector(DOM.courseTree.nameClass);
     console.info(`开始进入章节[${nameSpan?.getAttribute("title")}]`);
-    const previewTabs = await wait.elements(
+
+    // 单页章节依然保留了隐藏的 Tab 元素
+    for (const tab of await wait.elements(
       () => nameSpan?.click(),
       DOM.chapter.tabClass,
-      doc,
-    );
-    for (const tab of previewTabs) {
+      document,
+    )) {
       console.info("等待章节主框架加载");
       const chapterDoc = await wait.iframeDoc(
         () => tab.click(),
         DOM.frames.chapterFrameId,
-        doc,
+        document,
       );
       await handleTab(chapterDoc);
     }
@@ -307,28 +414,15 @@
   };
 
   const main = async () => {
-    // 运行时状态与配置
-    /** @type {AppState} */
-    const state = {
-      config: {
-        hasBackend: false,
-        muteVideo: true,
-        lockingSpeed: false,
-        videoSpeedValue: 2.0,
-      },
-      chapterNodes: [],
-      quizAnswerCache: [],
-    };
-    state.config = await loadConfig(tauriInvoke, state.config);
-    state.chapterNodes = catchChapterNodes(document);
+    await state.config.loadFromBackend(tauriInvoke);
     confirm("开始答题");
-    for (const node of state.chapterNodes) {
+    for (const node of chapterNodes(document)) {
       const status = chapterNodeStatus(node);
       if (status === "Interactive") {
-        await handleChapter(document, node);
+        await handleChapter(node);
       }
     }
   };
 
-  (async () => await main())();
+  main();
 })();
